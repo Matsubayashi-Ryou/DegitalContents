@@ -67,5 +67,11 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "DegitalContents.slnx"
+    "dotnet.defaultSolution": "DegitalContents.slnx",
+    "files.autoSave": "off",
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSaveMode": "modificationsIfAvailable",
+    "editor.wordWrap": "off",
+    "editor.tabSize": 4
 }
