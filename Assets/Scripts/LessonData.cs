@@ -9,6 +9,8 @@ public class LessonData : ScriptableObject
     public int credits = 2;         // 単位数
     public TermType term;           // 開講区分
     public LessonFormat format;     // 授業形態
+    public TermCategory category;   // 授業区分
+    public bool isRequiredLottery;      // 抽選科目かどうか
 
     [Header("パラメータ変動")]
     [Tooltip("一回の受講で消費する体力")]

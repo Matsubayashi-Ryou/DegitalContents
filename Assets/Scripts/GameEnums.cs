@@ -10,3 +10,9 @@ public enum LessonFormat
     InPerson, // 対面
     Online    // オンライン
 }
+
+public enum TermCategory
+{
+    RequiredSubjects, // 必修科目
+    ElectiveSubjects // 選択科目
+}
