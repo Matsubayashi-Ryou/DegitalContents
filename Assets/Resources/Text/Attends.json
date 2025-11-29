@@ -1,0 +1,30 @@
+{
+    "data": [
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "よし、今日は真面目に授業を受けるぞ。",
+            "position": 0
+        },
+        {
+            "event_type": "standing_picture",
+            "name": "friend_a",
+            "expression": "smile",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "友人A",
+            "context": "おっ、来てるじゃん！ 隣座ろうぜ。",
+            "bgm": "",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "地の文",
+            "context": "友人と共に、集中して講義を受けた……。",
+            "bgm": "",
+            "position": 0
+        }
+    ]
+}

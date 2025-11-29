@@ -108,5 +108,6 @@ public class UIManager : MonoBehaviour
     {
         nextScheduleText.text = $"現在 {period}限目\n内容：{subjectName}";
         attendButton.interactable = isAttendable;
+        skipButton.interactable = true; // スキップは常に可能とする
     }
 }

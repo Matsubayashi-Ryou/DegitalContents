@@ -1,11 +1,19 @@
 using UnityEngine;
 using System;
+using Cysharp.Threading.Tasks; // UniTask
+using System.Threading; // CancellationToken
 
 public class GameManager : MonoBehaviour
 {
     [Header("マネージャー参照")]
     public PlayerStatus player;
     public UIManager uiManager; // UI操作は全部これに任せる
+    public ConversationManager conversationManager;
+
+    [Header("シナリオデータ")]
+    public TextAsset attendClassScenario; // ★JSONファイルをアタッチ
+    public TextAsset skipClassScenario;   // ★JSONファイルをアタッチ
+
 
     // 内部データ
     private DateTime currentDate = new DateTime(2025, 4, 1);
@@ -70,23 +78,46 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void OnClickAttend()
+    public async void OnClickAttend()
     {
+        // 1. ボタンを連打できないように無効化するなどの処理推奨
+        uiManager.attendButton.interactable = false;
+        uiManager.skipButton.interactable = false;
+
+        // 2. 会話パートを開始し、終わるまで待機 (await)
+        // This.GetCancellationTokenOnDestroy() はUniTaskの機能で、
+        // ゲーム停止時などに安全にキャンセルするためのトークンを取得
+        await conversationManager.StartConversation(attendClassScenario, this.GetCancellationTokenOnDestroy());
+
+        // --- ここから下は会話が終わった後に実行される ---
+
+        // 3. ステータス計算
         int efficiency = 1;
-        // ※ここのロジックは後でもっと複雑になる（GameManagerの仕事）
         if (player.stamina < 30 || player.motivation < 20) efficiency = 0;
-
         int academicGain = 10 * efficiency;
-        player.UpdateStatus(academicGain, -20, -10); // 体力・やる気消費
+        player.UpdateStatus(academicGain, -20, -10);
 
-        Debug.Log("授業に出席");
+        Debug.Log("授業に出席完了");
+
+        // 4. 次の行動へ
         AdvancePeriod();
+
+        // ボタン復帰などは AdvancePeriod 内の UI更新処理で行われるはず
     }
 
-    public void OnClickSkip()
+
+    public async void OnClickSkip()
     {
-        player.UpdateStatus(0, 20, 10); // 回復
-        Debug.Log("休憩");
+        uiManager.attendButton.interactable = false;
+        uiManager.skipButton.interactable = false;
+
+        // サボり用シナリオ再生
+        await conversationManager.StartConversation(skipClassScenario, this.GetCancellationTokenOnDestroy());
+
+        player.UpdateStatus(0, 20, 10);
+        Debug.Log("休憩完了");
+
         AdvancePeriod();
     }
+
 }

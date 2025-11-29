@@ -991,6 +991,85 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "Conversation",
+            "id": "55334aa9-9331-4797-9868-c409923c4377",
+            "actions": [
+                {
+                    "name": "Submit",
+                    "type": "Button",
+                    "id": "7c835835-2c88-41f0-9d0e-666358fc060c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "FastForward",
+                    "type": "Button",
+                    "id": "144f4db9-8b9a-4fce-bfa1-613638d4f277",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleAutoMode",
+                    "type": "Button",
+                    "id": "d011abbc-9665-4db6-9c39-ddce723f5ed8",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "373c5f81-f5d9-4a08-9dd6-0da2df179564",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Submit",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ea64ebdb-0576-4cf2-8cae-6886aebb4e75",
+                    "path": "<Keyboard>/leftCtrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "FastForward",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f613c268-5f07-47ff-864c-420cfa4a5cde",
+                    "path": "<Mouse>/middleButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "FastForward",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "82167e9f-9dc5-4e60-9cbe-77461972d097",
+                    "path": "<Keyboard>/a",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleAutoMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": [
