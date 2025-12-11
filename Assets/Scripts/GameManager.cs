@@ -20,13 +20,23 @@ public class GameManager : MonoBehaviour
     public List<LessonData> allLessons;
     // 内部データ
     private DateTime currentDate = new DateTime(2025, 4, 7); // ゲーム開始日は4月7日とする
+    private int currentDayOfWeek = 0; // 0=月, 1=火... 4=金
     private int currentPeriod = 1;
+    // 週間スケジュール (5日 x 5限)
+    // 0:月曜 ... 4:金曜
+    private LessonData[,] weeklySchedule = new LessonData[5, 5];
     // 今日の時間割（nullなら空きコマとする）
     private LessonData[] todaysSchedule = new LessonData[5];
-
-
-    void Start()
+    private bool isGameRunning = false;
+    // ★外部（履修登録画面）からスケジュールを受け取る関数
+    public void SetSchedule(LessonData[,] schedule)
     {
+        this.weeklySchedule = schedule;
+        StartGame(); // 登録完了したらゲーム開始
+    }
+    void StartGame()
+    {
+        isGameRunning = true;
         StartNewDay();
     }
 
@@ -35,33 +45,23 @@ public class GameManager : MonoBehaviour
         currentPeriod = 1;
         uiManager.UpdateDate(currentDate);
 
-        // --- 時間割生成ロジック ---
-        // 表示用の文字列リストを作成
+        // 今日の曜日 (0~4) に基づいて、登録された授業を取得
         string[] scheduleNames = new string[5];
-
         for (int i = 0; i < 5; i++)
         {
-            // 30%の確率で空きコマ、それ以外は授業あり（仮のロジック）
-            if (UnityEngine.Random.Range(0, 100) < 30)
+            LessonData lesson = weeklySchedule[currentDayOfWeek, i];
+            if (lesson == null)
             {
-                todaysSchedule[i] = null; // 空きコマ
                 scheduleNames[i] = "空きコマ";
             }
             else
             {
-                // 登録された授業リストからランダムに1つ選ぶ
-                int randomIndex = UnityEngine.Random.Range(0, allLessons.Count);
-                todaysSchedule[i] = allLessons[randomIndex];
-
-                // 表示用に「授業名 (形態)」みたいな文字列を作る
-                string formatText = todaysSchedule[i].format == LessonFormat.Online ? "オン" : "対面";
-                scheduleNames[i] = $"{todaysSchedule[i].lessonName} ({formatText})";
+                string formatText = lesson.format == LessonFormat.Online ? "オン" : "対面";
+                scheduleNames[i] = $"{lesson.lessonName} ({formatText})";
             }
         }
 
-        // 時間割表を更新
         uiManager.UpdateScheduleList(scheduleNames);
-
         ProcessCurrentPeriod();
     }
 
@@ -71,7 +71,8 @@ public class GameManager : MonoBehaviour
     {
         uiManager.UpdateStatusDisplay(player);
 
-        LessonData currentLesson = todaysSchedule[currentPeriod - 1];
+        // 配列は0始まり、currentPeriodは1始まりなので -1 する
+        LessonData currentLesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
 
         string displayTitle;
         bool canAttend;
@@ -79,11 +80,15 @@ public class GameManager : MonoBehaviour
         if (currentLesson == null)
         {
             displayTitle = "空きコマ";
-            canAttend = false;
+            canAttend = false; // 授業がないので出席ボタンは押せない
         }
         else
         {
-            displayTitle = $"{currentLesson.lessonName}\n担当：{currentLesson.teacherName}\n形態：{currentLesson.format}";
+            // 授業情報の詳細を表示
+            displayTitle = $"{currentLesson.lessonName}\n" +
+                           $"担当：{currentLesson.teacherName}\n" +
+                           $"形態：{currentLesson.format}\n" +
+                           $"消費体力：{currentLesson.staminaCost} / 学力上昇：{currentLesson.academicGain}";
             canAttend = true;
         }
 
@@ -96,7 +101,17 @@ public class GameManager : MonoBehaviour
         currentPeriod++;
         if (currentPeriod > 5)
         {
+            // 次の日へ
             currentDate = currentDate.AddDays(1);
+            currentDayOfWeek++;
+
+            // 金曜(4)が終わったら月曜(0)に戻す（週末処理を入れるならここで分岐）
+            if (currentDayOfWeek > 4)
+            {
+                currentDate = currentDate.AddDays(2); // 土日飛ばし
+                currentDayOfWeek = 0;
+                Debug.Log("=== 一週間終了 ===");
+            }
             StartNewDay();
         }
         else
@@ -110,7 +125,7 @@ public class GameManager : MonoBehaviour
         // 1. ボタンを連打できないように無効化するなどの処理推奨
         uiManager.attendButton.interactable = false;
         uiManager.skipButton.interactable = false;
-        LessonData lesson = todaysSchedule[currentPeriod - 1];
+        LessonData lesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
 
 
         // 2. 会話パートを開始し、終わるまで待機 (await)
@@ -126,13 +141,29 @@ public class GameManager : MonoBehaviour
 
         // 3. ステータス計算
         float efficiency = 1.0f;
-        if (player.stamina < 30) efficiency = 0.5f;     // 疲れてると半分しか身につかない
-        if (player.motivation < 20) efficiency = 0.2f;  // やる気がないとほぼ無理
+        string logMsg = "";
+
+        if (player.stamina < 30)
+        {
+            efficiency = 0.5f;     // 疲れてると半分しか身につかない
+            logMsg += "（疲労）";
+        }
+        if (player.motivation < 20)
+        {
+            efficiency = 0.2f;  // やる気がないとほぼ無理
+            logMsg += "（やる気不足）";
+        }
+        if (lesson.format == LessonFormat.Online)
+        {
+            // オンラインはサボりやすいが、体力消費が少ないので出席しやすい
+            efficiency = 0.1f;
+            logMsg += "（オンライン）";
+        }
 
         int finalAcademicGain = Mathf.FloorToInt(gain * efficiency);
 
         // 学力UP、体力消費(授業データ依存)、やる気消費(固定あるいはデータ依存)
-        player.UpdateStatus(finalAcademicGain, -cost, -10);
+        player.UpdateStatus(finalAcademicGain, -cost, -5);
 
         Debug.Log($"「{lesson.lessonName}」に出席。学力+{finalAcademicGain}, 体力-{cost}");
 
@@ -156,5 +187,4 @@ public class GameManager : MonoBehaviour
 
         AdvancePeriod();
     }
-
 }
