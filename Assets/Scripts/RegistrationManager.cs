@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
+using System.Text;
 
 public class RegistrationManager : MonoBehaviour
 {
@@ -14,10 +15,18 @@ public class RegistrationManager : MonoBehaviour
     public Transform paletteContent; // 授業一覧の親オブジェクト
     public GameObject paletteButtonPrefab;
 
-    // 左側の時間割グリッドのボタン (Slot0=月1, Slot1=月2... Slot24=金5)
+    // サイズを30に変更 (月曜1限～土曜5限)
+    // 0~4:月, 5~9:火, ... 25~29:土
     public Button[] timeTableButtons;
-
     public Button startButton;
+    [Header("バイト設定")]
+    // 月～土の6つのToggleをInspectorで設定する
+    public Toggle[] shiftToggles;
+
+    [Header("抽選結果表示用UI")]
+    public GameObject lotteryResultPanel; // 結果表示用ポップアップパネル
+    public TextMeshProUGUI lotteryResultText; // 「○○の抽選に外れました」を表示
+    public Button lotteryConfirmButton; // 「確認して開始」ボタン
 
     // 内部データ: 現在作成中の時間割
     private LessonData[,] tempSchedule = new LessonData[5, 5];
@@ -27,9 +36,14 @@ public class RegistrationManager : MonoBehaviour
         registrationCanvas.SetActive(true);
         mainGameCanvas.SetActive(false);
 
+        // 抽選結果パネルは隠しておく
+        if (lotteryResultPanel != null) lotteryResultPanel.SetActive(false);
+        // 結果確認ボタンにイベント登録
+        if (lotteryConfirmButton != null)
+            lotteryConfirmButton.onClick.AddListener(StartMainGame);
+
         InitializeTimeTableButtons(); // グリッドの初期化
         InitializePalette();          // 右側リストの初期化
-
         RefreshTimeTableView();       // 画面描画
     }
 
@@ -165,6 +179,81 @@ public class RegistrationManager : MonoBehaviour
 
     public void OnClickComplete()
     {
+        RunLotteryAndFinish();
+    }
+    // 抽選を実行し、結果に応じて分岐する
+    void RunLotteryAndFinish()
+    {
+        List<string> failedLessons = new List<string>(); // 落ちた授業名のリスト
+
+        // 全コマをチェック
+        for (int d = 0; d < 5; d++)
+        {
+            for (int p = 0; p < 5; p++)
+            {
+                LessonData lesson = tempSchedule[d, p];
+
+                // 授業があり、かつ抽選対象なら
+                if (lesson != null && lesson.isRequiredLottery)
+                {
+                    // 0~99の乱数を出し、10未満ならアウト (10%)
+                    if (UnityEngine.Random.Range(0, 100) < 10)
+                    {
+                        failedLessons.Add(lesson.lessonName);
+
+                        // 時間割から削除（空きコマにする）
+                        tempSchedule[d, p] = null;
+                    }
+                }
+            }
+        }
+
+        // 抽選落ちがあったかどうかで分岐
+        if (failedLessons.Count > 0)
+        {
+            // 落ちた科目がある場合、ポップアップを表示
+            ShowLotteryResult(failedLessons);
+        }
+        else
+        {
+            // 全部通った（または抽選科目がなかった）場合、そのまま開始
+            StartMainGame();
+        }
+    }
+
+    // 抽選結果ポップアップを表示
+    void ShowLotteryResult(List<string> failedLessons)
+    {
+        if (lotteryResultPanel == null)
+        {
+            // パネルが設定されていない場合はログだけ出して強行
+            Debug.LogWarning("抽選結果パネルが設定されていません。");
+            foreach (var name in failedLessons) Debug.Log($"抽選落ち: {name}");
+            StartMainGame();
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.AppendLine("<color=red>【抽選結果のお知らせ】</color>");
+        sb.AppendLine("残念ながら、以下の科目の履修抽選に外れました。\n");
+
+        foreach (string name in failedLessons)
+        {
+            sb.AppendLine($"・{name}");
+        }
+
+        sb.AppendLine("\nこれらの時間は「空きコマ」となります。");
+
+        lotteryResultText.text = sb.ToString();
+        lotteryResultPanel.SetActive(true);
+
+        // ユーザーが「確認」ボタンを押すのを待つ
+    }
+    void StartMainGame()
+    {
+        // パネルが出ていたら消す
+        if (lotteryResultPanel != null) lotteryResultPanel.SetActive(false);
+
         // GameManagerにデータを渡す
         gameManager.SetSchedule(tempSchedule);
 
