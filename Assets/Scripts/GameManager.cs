@@ -160,6 +160,7 @@ public class GameManager : MonoBehaviour
             logMsg += "（オンライン）";
         }
 
+
         int finalAcademicGain = Mathf.FloorToInt(gain * efficiency);
 
         // 学力UP、体力消費(授業データ依存)、やる気消費(固定あるいはデータ依存)
@@ -182,7 +183,8 @@ public class GameManager : MonoBehaviour
         // サボり用シナリオ再生
         await conversationManager.StartConversation(skipClassScenario, this.GetCancellationTokenOnDestroy());
 
-        player.UpdateStatus(0, 20, 10);
+
+        player.UpdateStatus(0, 20, 10, -5);
         Debug.Log("休憩完了");
 
         AdvancePeriod();
