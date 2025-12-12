@@ -7,101 +7,167 @@ public class RegistrationManager : MonoBehaviour
 {
     [Header("参照")]
     public GameManager gameManager;
-    public GameObject registrationCanvas; // 履修登録用のCanvas全体
-    public GameObject mainGameCanvas;     // メインゲーム用のCanvas全体
+    public GameObject registrationCanvas;
+    public GameObject mainGameCanvas;
 
     [Header("UIパーツ")]
-    public Transform paletteContent; // 授業一覧を並べるScrollViewのContent
-    public GameObject paletteButtonPrefab; // 授業選択用ボタンのプレハブ
-    public Button[] timeTableButtons; // 0~24番目 (月1, 月2... 金5) の順で割り当てる
+    public Transform paletteContent; // 授業一覧の親オブジェクト
+    public GameObject paletteButtonPrefab;
+
+    // 左側の時間割グリッドのボタン (Slot0=月1, Slot1=月2... Slot24=金5)
+    public Button[] timeTableButtons;
+
     public Button startButton;
 
-    // 内部データ
-    private LessonData selectedLesson = null; // 現在パレットで選択中の授業
-    private LessonData[,] tempSchedule = new LessonData[5, 5]; // 作成中の時間割
+    // 内部データ: 現在作成中の時間割
+    private LessonData[,] tempSchedule = new LessonData[5, 5];
 
     void Start()
     {
-        // ゲーム開始時は履修登録画面だけ表示
         registrationCanvas.SetActive(true);
         mainGameCanvas.SetActive(false);
 
-        InitializePalette();
-        InitializeTimeTable();
+        InitializeTimeTableButtons(); // グリッドの初期化
+        InitializePalette();          // 右側リストの初期化
+
+        RefreshTimeTableView();       // 画面描画
     }
 
-    // 授業パレットの生成
+    // --- 初期化処理 ---
+
+    // 授業リスト（パレット）の生成
     void InitializePalette()
     {
-        // GameManagerに登録されている全授業リストを取得してボタン化
+        // 既存のボタンがあれば消す（再読み込み対応）
+        foreach (Transform child in paletteContent)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // GameManagerに登録されている全授業リストからボタンを作る
         foreach (var lesson in gameManager.allLessons)
         {
             GameObject btnObj = Instantiate(paletteButtonPrefab, paletteContent);
 
-            // ボタンのラベル設定
+            // ボタンの表示テキスト: 「月1: プログラミング基礎」
             TextMeshProUGUI txt = btnObj.GetComponentInChildren<TextMeshProUGUI>();
-            if (txt) txt.text = $"{lesson.lessonName}\n({lesson.credits}単位)";
+            if (txt)
+            {
+                txt.text = $"[{lesson.GetTimeSlotString()}] {lesson.lessonName}\n" +
+                           $"<size=20>{lesson.credits}単位 / 体-{lesson.staminaCost}</size>";
+            }
 
-            // ボタンクリック時の挙動
+            // ボタンクリック時の挙動: この授業を登録しようとする
             Button btn = btnObj.GetComponent<Button>();
-            btn.onClick.AddListener(() => OnSelectPalette(lesson));
+            btn.onClick.AddListener(() => TryRegisterLesson(lesson));
         }
-
-        // 「削除（空きコマにする）」ボタンも追加
-        GameObject clearBtnObj = Instantiate(paletteButtonPrefab, paletteContent);
-        clearBtnObj.GetComponentInChildren<TextMeshProUGUI>().text = "取消（空きコマ）";
-        clearBtnObj.GetComponent<Image>().color = Color.gray;
-        clearBtnObj.GetComponent<Button>().onClick.AddListener(() => OnSelectPalette(null));
     }
 
-    // 時間割ボタンの初期化
-    void InitializeTimeTable()
+    // 時間割グリッドボタンの初期設定
+    void InitializeTimeTableButtons()
     {
         for (int i = 0; i < timeTableButtons.Length; i++)
         {
-            int index = i; // クロージャ用
-            timeTableButtons[i].onClick.AddListener(() => OnClickSlot(index));
-
-            // 初期表示
-            timeTableButtons[i].GetComponentInChildren<TextMeshProUGUI>().text = "未登録";
+            int index = i;
+            // グリッドをクリックしたら、そのコマの登録を解除する
+            timeTableButtons[i].onClick.AddListener(() => RemoveLessonAtIndex(index));
         }
     }
 
-    // パレットから授業を選んだとき
-    void OnSelectPalette(LessonData lesson)
+    // --- 登録・解除ロジック ---
+
+    // リストから授業ボタンを押したときの処理
+    void TryRegisterLesson(LessonData lesson)
     {
-        selectedLesson = lesson;
-        Debug.Log(lesson == null ? "「取消」を選択中" : $"「{lesson.lessonName}」を選択中");
+        int dayIndex = (int)lesson.day; // Enumをint(0~4)に変換
+        int periodIndex = lesson.period - 1; // 1~5 を 0~4 に変換
+
+        // 同じ時間に既に授業が入っているか確認
+        LessonData existing = tempSchedule[dayIndex, periodIndex];
+
+        if (existing != null)
+        {
+            Debug.Log($"上書き: {existing.lessonName} -> {lesson.lessonName}");
+        }
+
+        // 配列にセット
+        tempSchedule[dayIndex, periodIndex] = lesson;
+
+        // 画面更新
+        RefreshTimeTableView();
     }
 
-    // 時間割のマスをクリックしたとき
-    void OnClickSlot(int index)
+    // 時間割グリッドを押して登録解除する処理
+    void RemoveLessonAtIndex(int index)
     {
-        // 1次元配列のインデックス(0~24)を 2次元(曜日, 時限)に変換
-        int day = index / 5;    // 0~4
-        int period = index % 5; // 0~4
+        int day = index / 5;
+        int period = index % 5;
 
-        // データをセット
-        tempSchedule[day, period] = selectedLesson;
-
-        // ボタンの見た目更新
-        string displayName = selectedLesson == null ? "空き" : selectedLesson.lessonName;
-        timeTableButtons[index].GetComponentInChildren<TextMeshProUGUI>().text = displayName;
-
-        // 色を変えたりしても良い
-        // Color c = selectedLesson == null ? Color.white : Color.cyan;
-        // timeTableButtons[index].GetComponent<Image>().color = c;
+        if (tempSchedule[day, period] != null)
+        {
+            Debug.Log($"登録解除: {tempSchedule[day, period].lessonName}");
+            tempSchedule[day, period] = null;
+            RefreshTimeTableView();
+        }
     }
 
-    // 「登録完了」ボタン
+    // --- 画面描画 ---
+
+    // tempScheduleの内容に合わせて左側のグリッド表示を更新
+    void RefreshTimeTableView()
+    {
+        for (int day = 0; day < 5; day++)
+        {
+            for (int period = 0; period < 5; period++)
+            {
+                // UI上のインデックス計算 (縦5つ区切りなら day * 5 + period ? 
+                // Grid Layout Groupの設定によりますが、ここでは以前の仕様に合わせて
+                // Constraint=Column5 (横並び) であれば、順番は 月1,月2...ではなく 月1,火1... になるかも？
+                // ★重要: Grid Layout Groupが「Start Corner: Top Left」「Constraint: Fixed Column Count = 5」の場合、
+                // 通常は左から右へ埋まるので、
+                // Slot0=月1, Slot1=火1, Slot2=水1... という並びになります。
+                // 以前のコードでは「Slot0=月1, Slot1=月2...」としていたので、
+                // Layout Group の Constraint を「Fixed Row Count = 5」にして、縦に並べている前提か、
+                // あるいは単純に5x5の25個のボタン配列を、
+                // 0~4:月曜、5~9:火曜... とみなして実装します。
+
+                int uiIndex = (day * 5) + period;
+
+                if (uiIndex >= timeTableButtons.Length) continue;
+
+                LessonData data = tempSchedule[day, period];
+                TextMeshProUGUI txt = timeTableButtons[uiIndex].GetComponentInChildren<TextMeshProUGUI>();
+                Image bgImage = timeTableButtons[uiIndex].GetComponent<Image>();
+
+                if (data == null)
+                {
+                    txt.text = ""; // 空白
+                    bgImage.color = Color.white;
+                }
+                else
+                {
+                    txt.text = data.lessonName;
+                    // オンラインなら色を変えるなどの演出
+                    if (data.format == LessonFormat.Online)
+                    {
+                        bgImage.color = new Color(0.8f, 1f, 1f); // 水色っぽく
+                    }
+                    else
+                    {
+                        bgImage.color = new Color(1f, 0.9f, 0.8f); // オレンジっぽく
+                    }
+                }
+            }
+        }
+    }
+
+    // --- 完了処理 ---
+
     public void OnClickComplete()
     {
-        // ここで「必修が足りない！」などの警告を出しても良い
-
         // GameManagerにデータを渡す
         gameManager.SetSchedule(tempSchedule);
 
-        // 画面切り替え
         registrationCanvas.SetActive(false);
         mainGameCanvas.SetActive(true);
     }

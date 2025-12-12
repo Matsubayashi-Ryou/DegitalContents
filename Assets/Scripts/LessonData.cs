@@ -10,7 +10,11 @@ public class LessonData : ScriptableObject
     public TermType term;           // 開講区分
     public LessonFormat format;     // 授業形態
     public TermCategory category;   // 授業区分
-    public bool isRequiredLottery;      // 抽選科目かどうか
+    public bool isRequiredLottery;  // 抽選科目かどうか
+
+    [Header("開講日時")]
+    public GameDayOfWeek day;       // 曜日
+    [Range(1, 5)] public int period = 1; // 時限 (1~5)
 
     [Header("パラメータ変動")]
     [Tooltip("一回の受講で消費する体力")]
@@ -27,10 +31,33 @@ public class LessonData : ScriptableObject
     // エディタ上で値が変更されたときに呼ばれる検証用関数
     private void OnValidate()
     {
+        // 採点配分チェック
         int total = reportWeight + testWeight + participationWeight;
         if (total != 100)
         {
-            Debug.LogWarning($"[LessonData: {name}] 採点配分の合計が {total}% になっています！ 100%になるように調整してください。");
+            Debug.LogWarning($"[LessonData: {name}] 採点配分の合計が {total}% になっています！");
         }
+
+        // 時限チェック（念の為）
+        if (period < 1 || period > 5)
+        {
+            Debug.LogError($"[LessonData: {name}] 時限は1～5の間で設定してください。");
+            period = Mathf.Clamp(period, 1, 5);
+        }
+    }
+
+    // UI表示用に「月1」のような文字列を返す便利関数
+    public string GetTimeSlotString()
+    {
+        string dayStr = day switch
+        {
+            GameDayOfWeek.Monday => "月",
+            GameDayOfWeek.Tuesday => "火",
+            GameDayOfWeek.Wednesday => "水",
+            GameDayOfWeek.Thursday => "木",
+            GameDayOfWeek.Friday => "金",
+            _ => "？"
+        };
+        return $"{dayStr}{period}";
     }
 }
