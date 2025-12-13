@@ -1,0 +1,30 @@
+{
+    "data": [
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "お昼ご飯を食べよう",
+            "position": 0
+        },
+        {
+            "event_type": "standing_picture",
+            "name": "friend_a",
+            "expression": "smile",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "友人A",
+            "context": "ラーメンにしようぜ。",
+            "bgm": "",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "地の文",
+            "context": "おいしかった",
+            "bgm": "",
+            "position": 0
+        }
+    ]
+}
