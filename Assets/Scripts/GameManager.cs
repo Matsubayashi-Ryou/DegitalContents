@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     [Header("シナリオデータ")]
     public TextAsset attendClassScenario; // ★JSONファイルをアタッチ
     public TextAsset skipClassScenario;   // ★JSONファイルをアタッチ
+    public TextAsset LunchScenario;   // ★JSONファイルをアタッチ
 
     [Header("授業データプール")]
     // ここに作成したLessonData（プログラミング、英語など）をドラッグして登録しておく
@@ -180,8 +181,15 @@ public class GameManager : MonoBehaviour
         uiManager.attendButton.interactable = false;
         uiManager.skipButton.interactable = false;
 
-        // サボり用シナリオ再生
-        await conversationManager.StartConversation(skipClassScenario, this.GetCancellationTokenOnDestroy());
+        if (currentPeriod == 3)
+        {
+            await conversationManager.StartConversation(LunchScenario, this.GetCancellationTokenOnDestroy());
+        }
+        else
+        {
+            // サボり用シナリオ再生+-
+            await conversationManager.StartConversation(skipClassScenario, this.GetCancellationTokenOnDestroy());
+        }
 
 
         player.UpdateStatus(0, 20, 10, -5);
