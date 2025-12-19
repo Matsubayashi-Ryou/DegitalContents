@@ -29,7 +29,7 @@ public class RegistrationManager : MonoBehaviour
     public Button lotteryConfirmButton; // 「確認して開始」ボタン
 
     // 内部データ: 現在作成中の時間割
-    private LessonData[,] tempSchedule = new LessonData[5, 5];
+    private LessonData[,] tempSchedule = new LessonData[6, 5];
 
     void Start()
     {

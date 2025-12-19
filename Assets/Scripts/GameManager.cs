@@ -16,6 +16,8 @@ public class GameManager : MonoBehaviour
     public TextAsset skipClassScenario;   // ★JSONファイルをアタッチ
     public TextAsset LunchScenario;   // ★JSONファイルをアタッチ
 
+    public TextAsset testScenario; // ★テスト用シナリオを追加
+
     [Header("授業データプール")]
     // ここに作成したLessonData（プログラミング、英語など）をドラッグして登録しておく
     public List<LessonData> allLessons;
@@ -25,6 +27,8 @@ public class GameManager : MonoBehaviour
     private int currentPeriod = 1;
     // 週間スケジュール (5日 x 5限)
     // 0:月曜 ... 4:金曜
+    private int currentWeek = 1;
+
     private LessonData[,] weeklySchedule = new LessonData[5, 5];
     // 今日の時間割（nullなら空きコマとする）
     private LessonData[] todaysSchedule = new LessonData[5];
@@ -46,6 +50,11 @@ public class GameManager : MonoBehaviour
         currentPeriod = 1;
         uiManager.UpdateDate(currentDate);
 
+        if (currentDayOfWeek == 0 && currentPeriod == 1)
+        {
+            CheckSpecialEvents().Forget(); // 非同期でチェック
+        }
+
         // 今日の曜日 (0~4) に基づいて、登録された授業を取得
         string[] scheduleNames = new string[5];
         for (int i = 0; i < 5; i++)
@@ -64,6 +73,27 @@ public class GameManager : MonoBehaviour
 
         uiManager.UpdateScheduleList(scheduleNames);
         ProcessCurrentPeriod();
+    }
+
+    private async UniTaskVoid CheckSpecialEvents()
+    {
+        if (currentWeek == 0 || currentWeek == 14)
+        {
+            Debug.Log($"第{currentWeek}週：テスト期間開始！");
+
+            // UI操作を一時無効化
+            uiManager.attendButton.interactable = false;
+            uiManager.skipButton.interactable = false;
+
+            // テストシナリオを再生（会話が終わるまで待機）
+            await conversationManager.StartConversation(testScenario, this.GetCancellationTokenOnDestroy());
+
+            // テスト結果に応じたステータス変化などが必要ならここに記述
+            // player.UpdateStatus(0, -20, -10); 
+
+            // UIを元に戻す
+            ProcessCurrentPeriod();
+        }
     }
 
 
@@ -111,7 +141,8 @@ public class GameManager : MonoBehaviour
             {
                 currentDate = currentDate.AddDays(2); // 土日飛ばし
                 currentDayOfWeek = 0;
-                Debug.Log("=== 一週間終了 ===");
+                currentWeek++;
+                Debug.Log($"=== 第{currentWeek}週目開始 ===");
             }
             StartNewDay();
         }
