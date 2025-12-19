@@ -1,0 +1,24 @@
+{
+    "data": [
+        {
+            "event_type": "standing_picture",
+            "name": "bad_friend_face",
+            "expression": "smile",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "悪友",
+            "context": "おい、この授業出席取らないらしいぞ。駅前のカラオケ行かないか？",
+            "bgm": "",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "自分",
+            "context": "マジか…最近ストレス溜まってるし、歌って発散するか！",
+            "bgm": "",
+            "position": 0
+        }
+    ]
+}
