@@ -293,6 +293,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+--- !u!114 &210524507 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 711596580465505787, guid: 0f5e1a0181f5a484e9b38719c8ed52ce, type: 3}
+  m_PrefabInstance: {fileID: 1178583587474212800}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!114 &217791791 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7221441987935813167, guid: eaf2ba103b6c6451582ee8dbdc34988c, type: 3}
@@ -452,7 +463,12 @@ MonoBehaviour:
   - {fileID: 237970932}
   - {fileID: 690466877}
   startButton: {fileID: 967975237}
-  shiftToggles: []
+  shiftToggles:
+  - {fileID: 2022824035}
+  - {fileID: 759958212}
+  - {fileID: 720941574}
+  - {fileID: 649787638}
+  - {fileID: 863462643}
   lotteryResultPanel: {fileID: 323021211}
   lotteryResultText: {fileID: 907969373}
   lotteryConfirmButton: {fileID: 1072774113}
@@ -482,6 +498,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+--- !u!114 &649787638 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6732480231451605015, guid: eaf2ba103b6c6451582ee8dbdc34988c, type: 3}
+  m_PrefabInstance: {fileID: 4236101555364139652}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Toggle
 --- !u!114 &658094230 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1136952353958269443, guid: 0f5e1a0181f5a484e9b38719c8ed52ce, type: 3}
@@ -526,6 +553,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+--- !u!114 &720941574 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6565927631339532616, guid: eaf2ba103b6c6451582ee8dbdc34988c, type: 3}
+  m_PrefabInstance: {fileID: 4236101555364139652}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Toggle
+--- !u!114 &759958212 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5441635281961281041, guid: eaf2ba103b6c6451582ee8dbdc34988c, type: 3}
+  m_PrefabInstance: {fileID: 4236101555364139652}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Toggle
 --- !u!114 &789553890 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3406764532826151891, guid: 0f5e1a0181f5a484e9b38719c8ed52ce, type: 3}
@@ -548,6 +597,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+--- !u!114 &863462643 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5545260872104709174, guid: eaf2ba103b6c6451582ee8dbdc34988c, type: 3}
+  m_PrefabInstance: {fileID: 4236101555364139652}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Toggle
 --- !u!1001 &874528147
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -902,6 +962,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &1173591713 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6309629070132471472, guid: 0f5e1a0181f5a484e9b38719c8ed52ce, type: 3}
+  m_PrefabInstance: {fileID: 1178583587474212800}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!114 &1209895481 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7628659415484974752, guid: eaf2ba103b6c6451582ee8dbdc34988c, type: 3}
@@ -990,6 +1061,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!114 &1550903949 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 745093849815003520, guid: 0f5e1a0181f5a484e9b38719c8ed52ce, type: 3}
+  m_PrefabInstance: {fileID: 1178583587474212800}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!114 &1550930437 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8552039721467230031, guid: 0f5e1a0181f5a484e9b38719c8ed52ce, type: 3}
@@ -1201,6 +1283,9 @@ MonoBehaviour:
   - {fileID: 2062375034}
   attendButton: {fileID: 2016497889}
   skipButton: {fileID: 1425328609}
+  studyButton: {fileID: 1550903949}
+  playButton: {fileID: 1173591713}
+  workButton: {fileID: 210524507}
 --- !u!4 &1658674478
 Transform:
   m_ObjectHideFlags: 0
@@ -1336,6 +1421,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+--- !u!114 &2022824035 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 857361919025826971, guid: eaf2ba103b6c6451582ee8dbdc34988c, type: 3}
+  m_PrefabInstance: {fileID: 4236101555364139652}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Toggle
 --- !u!114 &2062375034 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4069196693361538276, guid: 0f5e1a0181f5a484e9b38719c8ed52ce, type: 3}

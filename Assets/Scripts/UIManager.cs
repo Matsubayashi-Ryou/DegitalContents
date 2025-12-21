@@ -39,9 +39,59 @@ public class UIManager : MonoBehaviour
     public Button attendButton;
     public Button skipButton;
 
+    // 追加ボタン
+    public Button studyButton;  // 課題・自習（学力UP）
+    public Button playButton;   // 遊ぶ（人間性UP）
+    public Button workButton;   // バイト（財力UP）
+
     // 危険域の色
     private Color normalColor = new Color(0.2f, 0.8f, 0.2f); // 緑っぽい色
     private Color dangerColor = new Color(1.0f, 0.3f, 0.3f); // 赤っぽい色
+
+    // ボタンの表示状態を整理する関数
+    public void UpdateActionButtons(bool hasClass, bool isShiftDay)
+    {
+        // 一旦全部リセット
+        attendButton.gameObject.SetActive(false);
+        skipButton.gameObject.SetActive(true); // 休むはいつでも選べる
+        studyButton.gameObject.SetActive(true);
+        playButton.gameObject.SetActive(true);
+        workButton.gameObject.SetActive(true);
+
+        // 授業がある場合
+        if (hasClass)
+        {
+            attendButton.gameObject.SetActive(true);
+
+            // 授業がある時間は、サボらないと他のことはできない
+            // UI設計としては「サボる(Rest)」を押した後に自由行動メニューを出すのが綺麗ですが
+            // 今回はシンプルに「授業があるなら授業ボタンがメイン」とします
+            studyButton.interactable = false;
+            playButton.interactable = false;
+            workButton.interactable = false;
+        }
+        else
+        {
+            // 空きコマ・放課後の場合
+            attendButton.gameObject.SetActive(false);
+
+            studyButton.interactable = true;
+            playButton.interactable = true;
+
+            // シフトが入っている日ならバイトボタン有効、そうでなければ無効（あるいは臨時バイト？）
+            // 仕様：シフト設定した日はバイトが推奨される
+            if (isShiftDay)
+            {
+                workButton.interactable = true;
+                // シフトの日は遊びにくい…とするなら playButton.interactable = false; とかもアリ
+            }
+            else
+            {
+                // シフトじゃない日はバイトできない（あるいはヘルプ待ち）
+                workButton.interactable = false;
+            }
+        }
+    }
 
     // ステータスを一括更新するメソッド
     public void UpdateStatusDisplay(PlayerStatus player)

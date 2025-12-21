@@ -3,9 +3,9 @@ using System;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 #nullable enable
-
 public class GameManager : MonoBehaviour
 {
     [Header("マネージャー参照")]
@@ -31,15 +31,19 @@ public class GameManager : MonoBehaviour
     // 週間スケジュール (5日 x 5限)
     // 0:月曜 ... 4:金曜
     private int currentWeek = 1;
-    private LessonData[,] weeklySchedule = new LessonData[5, 5];
+    // 6日 x 5限
+    private LessonData[,] weeklySchedule = new LessonData[6, 5];
+    // バイトシフト (月～土)
+    private bool[] shiftDays = new bool[6];
     // 今日の時間割（nullなら空きコマとする）
     private LessonData[] todaysSchedule = new LessonData[5];
     private bool isGameRunning = false;
 
     // 外部（履修登録画面）からスケジュールを受け取る関数
-    public void SetSchedule(LessonData[,] schedule)
+    public void SetSchedule(LessonData[,] schedule, bool[] shifts)
     {
         this.weeklySchedule = schedule;
+        this.shiftDays = shifts;
         StartGame();
     }
 
@@ -106,7 +110,24 @@ public class GameManager : MonoBehaviour
         // 配列は0始まり、currentPeriodは1始まりなので -1 する
         LessonData currentLesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
     string displayTitle;
-    bool canAttend;
+        bool canAttend;
+        bool isShift = shiftDays[currentDayOfWeek];
+        bool hasClass = (currentLesson != null);
+
+        if (hasClass)
+        {
+            displayTitle = $"【授業】{currentLesson.lessonName}\n{currentPeriod}限目";
+        }
+        else
+        {
+            // 空きコマの場合
+            displayTitle = isShift ? "【空きコマ】本日はバイトの日です" : "【空きコマ】自由時間";
+        }
+
+        uiManager.nextScheduleText.text = displayTitle;
+
+        // UIボタンの出し分け
+        uiManager.UpdateActionButtons(hasClass, isShift);
 
         if (currentLesson == null)
         {
@@ -158,12 +179,12 @@ public class GameManager : MonoBehaviour
     }
 }
 
-// 「出席」ボタン
-public async void OnClickAttend()
-{
-    uiManager.attendButton.interactable = false;
-    uiManager.skipButton.interactable = false;
-    LessonData lesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
+    // 「出席」ボタン
+    public async void OnClickAttend()
+    {
+        uiManager.attendButton.interactable = false;
+        uiManager.skipButton.interactable = false;
+        LessonData lesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
 
         // 1. 授業会話
         await conversationManager.StartConversation(attendClassScenario, this.GetCancellationTokenOnDestroy());
@@ -206,6 +227,49 @@ public async void OnClickAttend()
         await AdvancePeriod();
 
         // ボタン復帰などは AdvancePeriod 内の UI更新処理で行われるはず
+    }
+
+    // 2. 課題・自習 (学力UP大, 体力DOWN)
+    public async Task OnClickSelfStudy()
+    {
+        player.UpdateStatus(15, -15, -10); // 学力+15
+        Debug.Log("課題を進めた");
+        await AdvancePeriod();
+    }
+
+    // 3. 遊ぶ (人間性UP, 財力DOWN, 体力DOWN, やる気UP)
+    public async Task OnClickPlay()
+    {
+        if (player.money < 2000)
+        {
+            Debug.Log("金欠で遊べない！");
+            return;
+        }
+        player.UpdateStatus(0, -20, 10); // 学力変動なし
+        player.money -= 2000;
+        player.humanity += 10;
+
+        Debug.Log("友達と遊んだ");
+        await AdvancePeriod();
+    }
+
+    // 4. バイト (財力UP, 体力DOWN大)
+    public async Task OnClickWork()
+    {
+        int wage = 4000; // 時給換算
+        player.money += wage;
+        player.UpdateStatus(0, -25, -5);
+
+        Debug.Log($"バイトをして {wage}円 稼いだ");
+        await AdvancePeriod();
+    }
+
+    // 5. 休む (体力回復)
+    public async Task OnClickRest()
+    {
+        player.UpdateStatus(0, 30, 10);
+        Debug.Log("休憩した");
+        await AdvancePeriod();
     }
 
     // 「サボる / 休憩」ボタン

@@ -15,7 +15,6 @@ public class RegistrationManager : MonoBehaviour
     public Transform paletteContent; // 授業一覧の親オブジェクト
     public GameObject paletteButtonPrefab;
 
-    // サイズを30に変更 (月曜1限～土曜5限)
     // 0~4:月, 5~9:火, ... 25~29:土
     public Button[] timeTableButtons;
     public Button startButton;
@@ -114,7 +113,7 @@ public class RegistrationManager : MonoBehaviour
     // 時間割グリッドを押して登録解除する処理
     void RemoveLessonAtIndex(int index)
     {
-        int day = index / 5;
+        int day = index / 6;
         int period = index % 5;
 
         if (tempSchedule[day, period] != null)
@@ -130,7 +129,7 @@ public class RegistrationManager : MonoBehaviour
     // tempScheduleの内容に合わせて左側のグリッド表示を更新
     void RefreshTimeTableView()
     {
-        for (int day = 0; day < 5; day++)
+        for (int day = 0; day < 6; day++)
         {
             for (int period = 0; period < 5; period++)
             {
@@ -161,8 +160,7 @@ public class RegistrationManager : MonoBehaviour
                 else
                 {
                     txt.text = data.lessonName;
-                    // オンラインなら色を変えるなどの演出
-                    if (data.format == LessonFormat.Online)
+                    if (data.category == TermCategory.ElectiveSubjects)
                     {
                         bgImage.color = new Color(0.8f, 1f, 1f); // 水色っぽく
                     }
@@ -254,9 +252,19 @@ public class RegistrationManager : MonoBehaviour
         // パネルが出ていたら消す
         if (lotteryResultPanel != null) lotteryResultPanel.SetActive(false);
 
-        // GameManagerにデータを渡す
-        gameManager.SetSchedule(tempSchedule);
+        // バイトのシフト設定を取得
+        bool[] shiftDays = new bool[6];
+        for (int i = 0; i < 6; i++)
+        {
+            // Toggleが設定されていればその値を、なければfalse
+            if (i < shiftToggles.Length && shiftToggles[i] != null)
+            {
+                shiftDays[i] = shiftToggles[i].isOn;
+            }
+        }
 
+        // GameManagerにスケジュールとシフトを渡す
+        gameManager.SetSchedule(tempSchedule, shiftDays);
         registrationCanvas.SetActive(false);
         mainGameCanvas.SetActive(true);
     }
