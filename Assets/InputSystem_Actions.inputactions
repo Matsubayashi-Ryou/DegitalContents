@@ -1038,6 +1038,17 @@
                 },
                 {
                     "name": "",
+                    "id": "7deaa873-4ad6-475a-b63e-e00d988abf02",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Submit",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "ea64ebdb-0576-4cf2-8cae-6886aebb4e75",
                     "path": "<Keyboard>/leftCtrl",
                     "interactions": "",
