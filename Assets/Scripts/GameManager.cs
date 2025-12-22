@@ -1,9 +1,11 @@
 using UnityEngine;
 using System;
-using Cysharp.Threading.Tasks; // UniTask
-using System.Threading; // CancellationToken
+using Cysharp.Threading.Tasks;
+using System.Threading;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
+#nullable enable
 public class GameManager : MonoBehaviour
 {
     [Header("マネージャー参照")]
@@ -11,30 +13,40 @@ public class GameManager : MonoBehaviour
     public UIManager uiManager; // UI操作は全部これに任せる
     public ConversationManager conversationManager;
 
-    [Header("シナリオデータ")]
-    public TextAsset attendClassScenario; // ★JSONファイルをアタッチ
-    public TextAsset skipClassScenario;   // ★JSONファイルをアタッチ
-    public TextAsset LunchScenario;   // ★JSONファイルをアタッチ
+    [Header("基本シナリオデータ")]
+    public TextAsset attendClassScenario; // 授業出席
+    public TextAsset skipClassScenario;   // サボり
+    public TextAsset LunchScenario;       // 昼休み
+
+    public TextAsset testScenario; // ★テスト用シナリオを追加
 
     [Header("授業データプール")]
     // ここに作成したLessonData（プログラミング、英語など）をドラッグして登録しておく
     public List<LessonData> allLessons;
+
     // 内部データ
     private DateTime currentDate = new DateTime(2025, 4, 7); // ゲーム開始日は4月7日とする
     private int currentDayOfWeek = 0; // 0=月, 1=火... 4=金
     private int currentPeriod = 1;
     // 週間スケジュール (5日 x 5限)
     // 0:月曜 ... 4:金曜
-    private LessonData[,] weeklySchedule = new LessonData[5, 5];
+    private int currentWeek = 1;
+    // 6日 x 5限
+    private LessonData[,] weeklySchedule = new LessonData[6, 5];
+    // バイトシフト (月～土)
+    private bool[] shiftDays = new bool[6];
     // 今日の時間割（nullなら空きコマとする）
     private LessonData[] todaysSchedule = new LessonData[5];
     private bool isGameRunning = false;
-    // ★外部（履修登録画面）からスケジュールを受け取る関数
-    public void SetSchedule(LessonData[,] schedule)
+
+    // 外部（履修登録画面）からスケジュールを受け取る関数
+    public void SetSchedule(LessonData[,] schedule, bool[] shifts)
     {
         this.weeklySchedule = schedule;
-        StartGame(); // 登録完了したらゲーム開始
+        this.shiftDays = shifts;
+        StartGame();
     }
+
     void StartGame()
     {
         isGameRunning = true;
@@ -45,6 +57,11 @@ public class GameManager : MonoBehaviour
     {
         currentPeriod = 1;
         uiManager.UpdateDate(currentDate);
+
+        if (currentDayOfWeek == 0 && currentPeriod == 1)
+        {
+            CheckSpecialEvents().Forget(); // 非同期でチェック
+        }
 
         // 今日の曜日 (0~4) に基づいて、登録された授業を取得
         string[] scheduleNames = new string[5];
@@ -61,9 +78,28 @@ public class GameManager : MonoBehaviour
                 scheduleNames[i] = $"{lesson.lessonName} ({formatText})";
             }
         }
-
         uiManager.UpdateScheduleList(scheduleNames);
         ProcessCurrentPeriod();
+    }
+
+    private async UniTaskVoid CheckSpecialEvents()
+    {
+        {
+            Debug.Log($"第{currentWeek}週：テスト期間開始！");
+
+            // UI操作を一時無効化
+            uiManager.attendButton.interactable = false;
+            uiManager.skipButton.interactable = false;
+
+            // テストシナリオを再生（会話が終わるまで待機）
+            await conversationManager.StartConversation(testScenario, this.GetCancellationTokenOnDestroy());
+
+            // テスト結果に応じたステータス変化などが必要ならここに記述
+            // player.UpdateStatus(0, -20, -10); 
+
+            // UIを元に戻す
+            ProcessCurrentPeriod();
+        }
     }
 
 
@@ -71,12 +107,27 @@ public class GameManager : MonoBehaviour
     void ProcessCurrentPeriod()
     {
         uiManager.UpdateStatusDisplay(player);
-
         // 配列は0始まり、currentPeriodは1始まりなので -1 する
         LessonData currentLesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
-
-        string displayTitle;
+    string displayTitle;
         bool canAttend;
+        bool isShift = shiftDays[currentDayOfWeek];
+        bool hasClass = (currentLesson != null);
+
+        if (hasClass)
+        {
+            displayTitle = $"【授業】{currentLesson.lessonName}\n{currentPeriod}限目";
+        }
+        else
+        {
+            // 空きコマの場合
+            displayTitle = isShift ? "【空きコマ】本日はバイトの日です" : "【空きコマ】自由時間";
+        }
+
+        uiManager.nextScheduleText.text = displayTitle;
+
+        // UIボタンの出し分け
+        uiManager.UpdateActionButtons(hasClass, isShift);
 
         if (currentLesson == null)
         {
@@ -84,7 +135,7 @@ public class GameManager : MonoBehaviour
             canAttend = false; // 授業がないので出席ボタンは押せない
         }
         else
-        {
+{
             // 授業情報の詳細を表示
             displayTitle = $"{currentLesson.lessonName}\n" +
                            $"担当：{currentLesson.teacherName}\n" +
@@ -96,105 +147,224 @@ public class GameManager : MonoBehaviour
         uiManager.UpdateCurrentPeriod(currentPeriod, displayTitle, canAttend);
     }
 
+    // --- 時限を進める処理 ---
+    async UniTask AdvancePeriod()
+{
+    currentPeriod++;
 
-    void AdvancePeriod()
+    // 5限終了後（放課後）
+    if (currentPeriod > 5)
     {
-        currentPeriod++;
-        if (currentPeriod > 5)
-        {
-            // 次の日へ
+        Debug.Log("放課後になりました。");
+
+            // トリガー：放課後のランダムイベント (30%)
+            await CheckAndTriggerRandomEvent("AfterSchool");
+
+            // 日付更新
             currentDate = currentDate.AddDays(1);
             currentDayOfWeek++;
 
-            // 金曜(4)が終わったら月曜(0)に戻す（週末処理を入れるならここで分岐）
-            if (currentDayOfWeek > 4)
-            {
+        if (currentDayOfWeek > 4) // 金曜終了
+        {
                 currentDate = currentDate.AddDays(2); // 土日飛ばし
                 currentDayOfWeek = 0;
-                Debug.Log("=== 一週間終了 ===");
+                currentWeek++;
+                Debug.Log($"=== 第{currentWeek}週目開始 ===");
             }
-            StartNewDay();
-        }
-        else
-        {
-            ProcessCurrentPeriod();
-        }
+        StartNewDay();
     }
+    else
+    {
+        ProcessCurrentPeriod();
+    }
+}
 
+    // 「出席」ボタン
     public async void OnClickAttend()
     {
-        // 1. ボタンを連打できないように無効化するなどの処理推奨
         uiManager.attendButton.interactable = false;
         uiManager.skipButton.interactable = false;
         LessonData lesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
 
-
-        // 2. 会話パートを開始し、終わるまで待機 (await)
-        // This.GetCancellationTokenOnDestroy() はUniTaskの機能で、
-        // ゲーム停止時などに安全にキャンセルするためのトークンを取得
+        // 1. 授業会話
         await conversationManager.StartConversation(attendClassScenario, this.GetCancellationTokenOnDestroy());
 
-        // --- ここから下は会話が終わった後に実行される ---
-        // --- パラメータ計算 ---
-        // 授業データの値を使用する
+        // 2. パラメータ計算
         int cost = lesson.staminaCost;
         int gain = lesson.academicGain;
-
         // 3. ステータス計算
         float efficiency = 1.0f;
-        string logMsg = "";
 
-        if (player.stamina < 30)
-        {
-            efficiency = 0.5f;     // 疲れてると半分しか身につかない
-            logMsg += "（疲労）";
-        }
+        // 勉強のやる気が低いと効率ダウン
         if (player.motivation < 20)
         {
-            efficiency = 0.2f;  // やる気がないとほぼ無理
-            logMsg += "（やる気不足）";
+            efficiency = 0.2f;
+            Debug.Log("勉強のやる気が低いため、身につかなかった...");
+        }
+        else if (player.stamina < 30)
+        {
+            efficiency = 0.5f;
+            Debug.Log("疲労で集中できなかった...");
         }
         if (lesson.format == LessonFormat.Online)
         {
             // オンラインはサボりやすいが、体力消費が少ないので出席しやすい
             efficiency = 0.1f;
-            logMsg += "（オンライン）";
         }
 
+        int finalAcademicGain = Mathf.FloorToInt(lesson.academicGain * efficiency);
+        int staminaCost = lesson.staminaCost;
 
-        int finalAcademicGain = Mathf.FloorToInt(gain * efficiency);
-
-        // 学力UP、体力消費(授業データ依存)、やる気消費(固定あるいはデータ依存)
-        player.UpdateStatus(finalAcademicGain, -cost, -5);
+        // ★名前付き引数で指定（順番を気にしなくて済む）
+        player.UpdateStatus(
+        academicChg: finalAcademicGain,
+        staminaChg: -staminaCost,
+        motivationChg: -5 // 授業で少し疲れてやる気ダウン
+    );
 
         Debug.Log($"「{lesson.lessonName}」に出席。学力+{finalAcademicGain}, 体力-{cost}");
 
-        // 次へ
-        AdvancePeriod();
+        await AdvancePeriod();
 
         // ボタン復帰などは AdvancePeriod 内の UI更新処理で行われるはず
     }
 
+    // 2. 課題・自習 (学力UP大, 体力DOWN)
+    public async Task OnClickSelfStudy()
+    {
+        player.UpdateStatus(15, -15, -10); // 学力+15
+        Debug.Log("課題を進めた");
+        await AdvancePeriod();
+    }
 
+    // 3. 遊ぶ (人間性UP, 財力DOWN, 体力DOWN, やる気UP)
+    public async Task OnClickPlay()
+    {
+        if (player.money < 2000)
+        {
+            Debug.Log("金欠で遊べない！");
+            return;
+        }
+        player.UpdateStatus(0, -20, 10); // 学力変動なし
+        player.money -= 2000;
+        player.humanity += 10;
+
+        Debug.Log("友達と遊んだ");
+        await AdvancePeriod();
+    }
+
+    // 4. バイト (財力UP, 体力DOWN大)
+    public async Task OnClickWork()
+    {
+        int wage = 4000; // 時給換算
+        player.money += wage;
+        player.UpdateStatus(0, -25, -5);
+
+        Debug.Log($"バイトをして {wage}円 稼いだ");
+        await AdvancePeriod();
+    }
+
+    // 5. 休む (体力回復)
+    public async Task OnClickRest()
+    {
+        player.UpdateStatus(0, 30, 10);
+        Debug.Log("休憩した");
+        await AdvancePeriod();
+    }
+
+    // 「サボる / 休憩」ボタン
     public async void OnClickSkip()
     {
         uiManager.attendButton.interactable = false;
         uiManager.skipButton.interactable = false;
 
-        if (currentPeriod == 3)
-        {
-            await conversationManager.StartConversation(LunchScenario, this.GetCancellationTokenOnDestroy());
-        }
-        else
-        {
-            // サボり用シナリオ再生+-
-            await conversationManager.StartConversation(skipClassScenario, this.GetCancellationTokenOnDestroy());
-        }
+    LessonData currentLesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
+    bool isEmptySlot = (currentLesson == null);
 
-
-        player.UpdateStatus(0, 20, 10, -5);
-        Debug.Log("休憩完了");
-
-        AdvancePeriod();
+    // 1. 基本行動
+    if (currentPeriod == 3) // 昼休み
+    {
+        await conversationManager.StartConversation(LunchScenario, this.GetCancellationTokenOnDestroy());
+        // 昼食: 体力+10, やる気+5
+        player.UpdateStatus(staminaChg: 10, motivationChg: 5);
     }
+    else if (isEmptySlot) // 空きコマ
+    {
+        Debug.Log("空きコマを過ごします。");
+        // 休憩: 体力+5, やる気+5
+        player.UpdateStatus(staminaChg: 5, motivationChg: 5);
+    }
+    else // サボり
+    {
+        await conversationManager.StartConversation(skipClassScenario, this.GetCancellationTokenOnDestroy());
+        // サボり: 体力+20, やる気-5 (罪悪感)
+        player.UpdateStatus(staminaChg: 20, motivationChg: -5);
+    }
+
+    // 2. ★ランダムイベント判定 (昼休み以外)
+    if (currentPeriod != 3)
+    {
+        string triggerType = isEmptySlot ? "EmptySlot" : "SkipClass";
+        await CheckAndTriggerRandomEvent(triggerType);
+    }
+
+    await AdvancePeriod();
+}
+
+// --- ランダムイベント判定 ---
+private async UniTask CheckAndTriggerRandomEvent(string triggerType)
+{
+    // 確率判定 (30%)
+    if (UnityEngine.Random.Range(1, 101) > 30) return;
+
+    Debug.Log($"ランダムイベント発生！ ({triggerType})");
+
+        //if (randomEventScenarios.Count == 0) return;
+
+        // int index = UnityEngine.Random.Range(0, randomEventScenarios.Count);
+        // TextAsset selectedScenario = randomEventScenarios[index];
+
+        // 会話再生
+        //await conversationManager.StartConversation(selectedScenario, this.GetCancellationTokenOnDestroy());
+
+        // イベント効果適用
+        //ApplyRandomEventEffect(index);
+    }
+
+    // イベント効果（仮）
+    private void ApplyRandomEventEffect(int eventIndex)
+    {
+    switch (eventIndex)
+    {
+        case 0: // 友達と遊んだ
+                // 財力-3000, 人間性+5, やる気+10 (リフレッシュ)
+            player.UpdateStatus(
+                moneyChg: -3000,
+                humanityChg: 5,
+                motivationChg: 10,
+                staminaChg: -10
+            );
+            Debug.Log("イベント: 友達と遊んでリフレッシュ！");
+            break;
+
+        case 1: // バイトヘルプ
+                // 財力+5000, 体力-30, やる気-10 (疲れ)
+            player.UpdateStatus(
+                moneyChg: 5000,
+                staminaChg: -30,
+                motivationChg: -10
+            );
+            Debug.Log("イベント: バイトで稼いだが疲れた...");
+            break;
+
+        case 2: // 自習
+                // 学力+10, 体力-10
+            player.UpdateStatus(
+                academicChg: 10,
+                staminaChg: -10
+            );
+            Debug.Log("イベント: 自習した。");
+            break;
+    }
+}
 }
