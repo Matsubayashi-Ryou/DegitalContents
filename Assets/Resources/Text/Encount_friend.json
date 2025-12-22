@@ -1,0 +1,28 @@
+{
+    "data": [
+        {
+            "event_type": "standing_picture",
+            "name": "friend_b",
+            "expression": "surprise",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "友人B",
+            "context": "お、こんなところで何してんの？",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "次の授業まで時間が空いちゃって。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "友人B",
+            "context": "ならさ、スマホゲームのマルチやろうぜ。人足りないんだよ。",
+            "position": 0
+        }
+    ]
+}

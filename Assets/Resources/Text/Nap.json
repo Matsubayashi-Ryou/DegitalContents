@@ -1,0 +1,22 @@
+{
+    "data": [
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "空きコマか。課題やろうと思って図書館に来たけど……。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "地の文",
+            "context": "静かな館内に、心地よい空調の音が響く。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "……だめだ、眠すぎる。15分だけ寝よう。",
+            "position": 0
+        }
+    ]
+}

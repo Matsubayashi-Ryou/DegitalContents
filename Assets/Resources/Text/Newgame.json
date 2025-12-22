@@ -1,0 +1,28 @@
+{
+    "data": [
+        {
+            "event_type": "text",
+            "name": "友人A",
+            "context": "この後、カラオケ行かない？ フリータイムで。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "あー、行きたいけど……。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "地の文",
+            "context": "家には昨日発売された新作ゲームが待っている。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "ごめん！ 今日は帰ってやらなきゃいけない「任務」があるんだ！（ダッシュで帰宅）",
+            "position": 0
+        }
+    ]
+}

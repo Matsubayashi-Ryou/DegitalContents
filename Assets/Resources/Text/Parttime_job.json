@@ -1,0 +1,28 @@
+{
+    "data": [
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "やっと今日の講義終わったー！",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "スマホ通知",
+            "context": "ピロリン♪（バイト先の店長からの通知）",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "店長(LINE)",
+            "context": "『今日急に人足りなくなったんだけど、18時から入れない？ 時給アップするから！』",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "ええ……遊びに行こうと思ったのに。どうしようかな。",
+            "position": 0
+        }
+    ]
+}
