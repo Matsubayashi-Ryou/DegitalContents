@@ -26,6 +26,13 @@ public class GameManager : MonoBehaviour
     [Header("ランダムイベント設定")]
     public List<RandomEventData> randomEvents;
 
+    [Header("テスト機能")]
+    public ExamManager examManager;
+    public bool isExamPeriod = false;
+
+    // --- ★変更: テスト期間をリストで管理 (7週目と15週目) ---
+    public List<int> examWeeks = new List<int> { 7, 15 };
+
     // 内部データ
     private DateTime currentDate = new DateTime(2025, 4, 7);
     private int currentDayOfWeek = 0; // 0=月...
@@ -82,14 +89,27 @@ public class GameManager : MonoBehaviour
     // テスト期間などの特別イベント
     private async UniTask CheckSpecialEvents()
     {
-        // testScenario が設定されていない場合の安全策を追加
-        if (testScenario == null) return;
-        Debug.Log($"第{currentWeek}週：テスト期間開始！");
-        // UI操作を一時無効化
-        uiManager.attendButton.interactable = false;
-        uiManager.skipButton.interactable = false;
+        // リストに含まれる週ならテスト期間とする
+        if (examWeeks.Contains(currentWeek))
+        {
+            Debug.Log($"第{currentWeek}週：テスト期間開始！");
+            isExamPeriod = true;
 
-        await conversationManager.StartConversation(testScenario, this.GetCancellationTokenOnDestroy());
+            uiManager.SetInputActive(false);
+
+            // シナリオ再生（中間と期末で会話を変えても面白いですね）
+            if (testScenario != null)
+            {
+                await conversationManager.StartConversation(testScenario, this.GetCancellationTokenOnDestroy());
+            }
+            uiManager.SetInputActive(true);
+        }
+        else
+        {
+            isExamPeriod = false;
+        }
+
+        ProcessCurrentPeriod();
     }
 
     async void ProcessCurrentPeriod()
@@ -99,6 +119,20 @@ public class GameManager : MonoBehaviour
         // 1. 基本情報の取得
         LessonData currentLesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
         bool hasClass = (currentLesson != null);
+        bool canAttend = true;
+        // --- ★変更: テスト期間かつ、その授業にテストがある場合のみ特別表示 ---
+        bool isExamToday = (isExamPeriod && hasClass && currentLesson.testWeight > 0);
+        string displayTitle = $"【定期試験】{currentLesson.lessonName}";
+
+        if (isExamToday)
+        {
+            uiManager.nextScheduleText.text = displayTitle;
+
+            // ボタン表示を「試験を受ける」モードにする
+            // 第3引数を true にして、試験モードであることをUIに伝える
+            uiManager.UpdateCurrentPeriod(currentPeriod, displayTitle, true);
+            return;
+        }
         bool isShift = shiftDays[currentDayOfWeek];
 
         // 2. 現在のタイミング（Context）を判定
@@ -160,14 +194,12 @@ public class GameManager : MonoBehaviour
         }
 
         // 4. 通常の画面表示
-        string displayTitle;
-        bool canAttend;
 
 
         if (hasClass)
         {
-            displayTitle = $"【授業】{currentLesson.lessonName}\n{currentPeriod}限目";
-            canAttend = true;
+            uiManager.nextScheduleText.text = $"【授業】{currentLesson.lessonName}";
+            uiManager.UpdateCurrentPeriod(currentPeriod, $"{currentLesson.lessonName}...", true);
         }
         else
         {
@@ -309,10 +341,20 @@ public class GameManager : MonoBehaviour
     // 「出席」ボタン
     public async void OnClickAttend()
     {
+        LessonData lesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
+
+        // --- ★変更: テスト期間 かつ テストがある授業なら試験処理へ ---
+        if (isExamPeriod && lesson != null && lesson.testWeight > 0)
+        {
+            OnClickExam(); // 試験用関数へ飛ばす
+            return;
+        }
+        // ---------------------------------------------------------
+
+        // 以下、通常の出席処理
         uiManager.SetInputActive(false);
         uiManager.attendButton.interactable = false;
         uiManager.skipButton.interactable = false;
-        LessonData lesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
 
         // 1. 授業会話
         await conversationManager.StartConversation(attendClassScenario, this.GetCancellationTokenOnDestroy());
@@ -347,6 +389,33 @@ public class GameManager : MonoBehaviour
         );
 
         Debug.Log($"「{lesson.lessonName}」に出席。");
+        await AdvancePeriod();
+    }
+
+    public async void OnClickExam()
+    {
+        uiManager.SetInputActive(false);
+        LessonData lesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
+
+        // 演出
+        Debug.Log("試験開始...");
+        await UniTask.Delay(1000);
+
+        // ExamManagerで計算
+        var result = examManager.ExecuteExam(lesson, player);
+
+        // 結果表示
+        string resultMsg = $"科目：{result.subjectName}\n" +
+                           $"点数：{result.score}点 ({result.grade})\n";
+
+        if (result.isPassed) resultMsg += "単位取得！";
+        else resultMsg += "<color=red>不可...</color>";
+
+        await uiManager.ShowConfirmDialog(resultMsg, "次へ", "");
+
+        // 試験は通常授業より疲れる
+        player.UpdateStatus(staminaChg: -30, motivationChg: -5);
+
         await AdvancePeriod();
     }
 
