@@ -3,7 +3,7 @@
         {
             "event_type": "text",
             "name": "主人公",
-            "context": "やっと今日の講義終わったー！",
+            "context": "次は空きコマか～。",
             "position": 0
         },
         {
@@ -21,7 +21,13 @@
         {
             "event_type": "text",
             "name": "主人公",
-            "context": "ええ……遊びに行こうと思ったのに。どうしようかな。",
+            "context": "ん～、、、この後の授業は出席たまにしか取らないし、一回くらい大丈夫でしょ！",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "『了解しました』っと",
             "position": 0
         }
     ]
