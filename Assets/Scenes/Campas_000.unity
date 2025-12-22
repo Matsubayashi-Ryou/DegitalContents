@@ -435,7 +435,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5a5144c3a6057574786af238cf4df774, type: 2}
   - {fileID: 11400000, guid: ce8f737bb024c4c49b527cb9d95c003d, type: 2}
   - {fileID: 11400000, guid: b672e88a1150ee440bf079e76c4ad843, type: 2}
-  randomEvents: []
+  randomEvents:
+  - {fileID: 11400000, guid: 0742d642e48a9e54ca3612ec4f94e815, type: 2}
+  - {fileID: 11400000, guid: 356b465b02927e24f94960b5d69fce27, type: 2}
+  - {fileID: 11400000, guid: e956787720a3118499f9d42ddaa56031, type: 2}
+  - {fileID: 11400000, guid: 7dda20086f598ee4498452165e862a9a, type: 2}
+  - {fileID: 11400000, guid: ac372d4c0ca707a4fb75eec50aa8ce6b, type: 2}
+  - {fileID: 11400000, guid: 26870d7575d39fa42bf27f4a66989639, type: 2}
 --- !u!4 &165263791
 Transform:
   m_ObjectHideFlags: 0
