@@ -1,0 +1,22 @@
+{
+    "data": [
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "次の授業まで暇だな。学食でも行くか。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "地の文",
+            "context": "しかし、学食は満席で座れそうにない。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "うわ、すごい人……。コンビニでおにぎり買って中庭で食べるか。",
+            "position": 0
+        }
+    ]
+}

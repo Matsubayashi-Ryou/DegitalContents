@@ -1,0 +1,28 @@
+{
+    "data": [
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "教室に向かってる途中だけど……。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "地の文",
+            "context": "今日は雲ひとつない快晴。春の風が心地よい。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "こんな日に暗い教室で講義聞くなんてナンセンスだな。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "地の文",
+            "context": "足は中庭のベンチの方へ向いていた。",
+            "position": 0
+        }
+    ]
+}

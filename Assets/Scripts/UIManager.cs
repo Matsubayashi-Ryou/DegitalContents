@@ -1,13 +1,14 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Cysharp.Threading.Tasks;
 
 public class UIManager : MonoBehaviour
 {
     [Header("ステータス表示 (Slider & Text)")]
     // 体力
     public Slider staminaSlider;
-    public Image staminaFillImage; // 色を変えるため
+    public Image staminaFillImage;
     public TextMeshProUGUI staminaText;
 
     // 学力
@@ -26,8 +27,6 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI humanityText;
 
     [Header("やる気 (内部パラメータ用)")]
-    // 企画書には4パラメータとありますが、やる気も重要なのでとりあえず表示しておきます
-    // 必要なければ非表示でもOK
     public TextMeshProUGUI motivationText;
 
     [Header("スケジュール・日付表示")]
@@ -40,20 +39,83 @@ public class UIManager : MonoBehaviour
     public Button skipButton;
 
     // 追加ボタン
-    public Button studyButton;  // 課題・自習（学力UP）
-    public Button playButton;   // 遊ぶ（人間性UP）
-    public Button workButton;   // バイト（財力UP）
+    public Button studyButton;  // 課題・自習
+    public Button playButton;   // 遊ぶ
+    public Button workButton;   // バイト
+
+    // --- ★追加: イベントダイアログ用UI ---
+    [Header("イベントダイアログ")]
+    public GameObject confirmDialogPanel; // 背景パネル
+    public TextMeshProUGUI dialogMessageText;
+    public TextMeshProUGUI yesButtonText; // ボタンラベル変更用
+    public TextMeshProUGUI noButtonText;
+    public Button dialogYesButton;
+    public Button dialogNoButton;
+
+    // ダイアログの結果待ちに使う
+    private UniTaskCompletionSource<bool> dialogSource;
 
     // 危険域の色
-    private Color normalColor = new Color(0.2f, 0.8f, 0.2f); // 緑っぽい色
-    private Color dangerColor = new Color(1.0f, 0.3f, 0.3f); // 赤っぽい色
+    private Color normalColor = new Color(0.2f, 0.8f, 0.2f);
+    private Color dangerColor = new Color(1.0f, 0.3f, 0.3f);
+
+    void Start()
+    {
+        // ダイアログボタンの初期化
+        if (dialogYesButton != null)
+            dialogYesButton.onClick.AddListener(() => OnDialogResult(true));
+
+        if (dialogNoButton != null)
+            dialogNoButton.onClick.AddListener(() => OnDialogResult(false));
+
+        if (confirmDialogPanel != null)
+            confirmDialogPanel.SetActive(false);
+    }
+
+    // --- ★追加: ダイアログを表示して結果を待つ非同期関数 ---
+    public async UniTask<bool> ShowConfirmDialog(string message, string yesLabel = "はい", string noLabel = "いいえ")
+    {
+        dialogMessageText.text = message;
+        if (yesButtonText) yesButtonText.text = yesLabel;
+        if (noButtonText) noButtonText.text = noLabel;
+
+        // Noボタンのテキストが空ならボタン自体を隠す（強制イベント用）
+        if (string.IsNullOrEmpty(noLabel) && dialogNoButton != null)
+            dialogNoButton.gameObject.SetActive(false);
+        else if (dialogNoButton != null)
+            dialogNoButton.gameObject.SetActive(true);
+
+        confirmDialogPanel.SetActive(true);
+
+        // ボタンが押されるまで待機
+        dialogSource = new UniTaskCompletionSource<bool>();
+        bool result = await dialogSource.Task;
+
+        confirmDialogPanel.SetActive(false);
+        return result;
+    }
+
+    void OnDialogResult(bool result)
+    {
+        dialogSource?.TrySetResult(result);
+    }
+
+    // --- ★追加: イベント中にメイン画面のボタンをロックする ---
+    public void SetInputActive(bool isActive)
+    {
+        attendButton.interactable = isActive;
+        skipButton.interactable = isActive;
+        studyButton.interactable = isActive;
+        playButton.interactable = isActive;
+        workButton.interactable = isActive;
+    }
 
     // ボタンの表示状態を整理する関数
     public void UpdateActionButtons(bool hasClass, bool isShiftDay)
     {
         // 一旦全部リセット
         attendButton.gameObject.SetActive(true);
-        skipButton.gameObject.SetActive(true); // 休むはいつでも選べる
+        skipButton.gameObject.SetActive(true);
         studyButton.gameObject.SetActive(true);
         playButton.gameObject.SetActive(true);
         workButton.gameObject.SetActive(true);
@@ -65,9 +127,7 @@ public class UIManager : MonoBehaviour
             attendButton.interactable = true; // 出席できる
             skipButton.interactable = true;   // サボって休める
 
-            // 授業がある時間は、サボらないと他のことはできない
-            // UI設計としては「サボる(Rest)」を押した後に自由行動メニューを出すのが綺麗ですが
-            // 今回はシンプルに「授業があるなら授業ボタンがメイン」とします
+            // 授業がある時間は他をロック
             studyButton.interactable = false;
             playButton.interactable = false;
             workButton.interactable = false;
@@ -81,17 +141,12 @@ public class UIManager : MonoBehaviour
             studyButton.interactable = true;
             playButton.interactable = true;
 
-
-            // シフトが入っている日ならバイトボタン有効、そうでなければ無効（あるいは臨時バイト？）
-            // 仕様：シフト設定した日はバイトが推奨される
             if (isShiftDay)
             {
                 workButton.interactable = true;
-                // シフトの日は遊びにくい…とするなら playButton.interactable = false; とかもアリ
             }
             else
             {
-                // シフトじゃない日はバイトできない（あるいはヘルプ待ち）
                 workButton.interactable = false;
             }
         }
@@ -100,52 +155,32 @@ public class UIManager : MonoBehaviour
     // ステータスを一括更新するメソッド
     public void UpdateStatusDisplay(PlayerStatus player)
     {
-        // --- 体力 (0～100) ---
         UpdateSingleStatus(staminaSlider, staminaFillImage, staminaText, player.stamina, 100, "体力");
-
-        // --- 学力 (上限なしだが、スライダー表示用に仮に200をMAXとする) ---
         UpdateSingleStatus(academicSlider, academicFillImage, academicText, player.academic, 200, "学力");
-
-        // --- 財力 (仮に 100,000 をMAXとする) ---
         UpdateSingleStatus(moneySlider, moneyFillImage, moneyText, player.money, 50000, "財力");
-
-        // --- 人間性 (仮に 100 をMAXとする) ---
         UpdateSingleStatus(humanitySlider, humanityFillImage, humanityText, player.humanity, 100, "人間性");
 
-        // やる気（テキストのみ更新）
         if (motivationText != null)
             motivationText.text = $"やる気: {player.motivation}";
     }
 
-    // 個別のスライダーとテキストを更新するヘルパー関数
+    // 個別のスライダー更新
     private void UpdateSingleStatus(Slider slider, Image fillImage, TextMeshProUGUI text, int currentValue, int maxValue, string label)
     {
-        // スライダー設定
         slider.maxValue = maxValue;
         slider.value = currentValue;
-
-        // テキスト設定
         text.text = $"{label}: {currentValue}";
 
-        // 色の変化 (残り1割以下なら赤)
         float percentage = (float)currentValue / maxValue;
-        if (percentage <= 0.1f)
-        {
-            fillImage.color = dangerColor;
-        }
-        else
-        {
-            fillImage.color = normalColor;
-        }
+        if (percentage <= 0.1f) fillImage.color = dangerColor;
+        else fillImage.color = normalColor;
     }
 
-    // 日付更新
     public void UpdateDate(System.DateTime date)
     {
         dateText.text = $"{date.Month}月{date.Day}日";
     }
 
-    // 今日の時間割リスト更新
     public void UpdateScheduleList(string[] schedules)
     {
         for (int i = 0; i < 5; i++)
@@ -157,11 +192,10 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // 現在のコマ情報更新
     public void UpdateCurrentPeriod(int period, string subjectName, bool isAttendable)
     {
         nextScheduleText.text = $"現在 {period}限目\n内容：{subjectName}";
         attendButton.interactable = isAttendable;
-        skipButton.interactable = true; // スキップは常に可能とする
+        skipButton.interactable = true;
     }
 }
