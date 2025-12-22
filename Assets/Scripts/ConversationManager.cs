@@ -88,10 +88,43 @@ public class ConversationManager : MonoBehaviour
 
     public async UniTask StartConversation(TextAsset scenarioJson, CancellationToken token)
     {
-        if (_isConversationActive) return;
+        Debug.Log("1. StartConversation が呼ばれました");
+        if (_isConversationActive)
+        {
+            Debug.LogWarning($"_isConversationActive:{_isConversationActive}");
+            return;
+        }
         _isConversationActive = true;
+        if (scenarioJson == null)
+        {
+            Debug.LogError("3. シナリオファイル(TextAsset)が null です！ GameManagerのInspectorを確認してください。");
+            return;
+        }
         playerInput.SwitchCurrentActionMap("Conversation");
+        Debug.Log($"4. JSONテキスト読み込み開始: {scenarioJson.name}");
         var scenarioData = JsonUtility.FromJson<ScenarioData>(scenarioJson.text);
+        if (scenarioData == null)
+        {
+            Debug.LogError("5. JSONパース結果が null です。JSONの書式が間違っています。");
+            EndConversation();
+            return;
+        }
+        // ★ここで落ちている可能性大
+        if (scenarioData.data == null)
+        {
+            Debug.LogError("6. JSONデータの 'data' リストが null です。JSONは { \"data\": [ ... ] } の形式になっていますか？");
+            EndConversation();
+            return;
+        }
+
+        if (scenarioData.data.Count == 0)
+        {
+            Debug.LogWarning("7. 会話イベントが0件です。JSONの中身が空ではありませんか？");
+            EndConversation();
+            return;
+        }
+
+        Debug.Log($"8. イベントキュー作成開始: {scenarioData.data.Count}件");
         if (scenarioData == null || scenarioData.data.Count == 0)
         {
             EndConversation(); // データがない場合もちゃんと終了処理を通す
@@ -113,14 +146,20 @@ public class ConversationManager : MonoBehaviour
     }
     private async UniTask ProcessConversationLoop(CancellationToken token)
     {
+        Debug.Log($"会話ループ開始。イベント数: {_eventQueue.Count}"); // ★確認用
         while (_eventQueue.Count > 0)
         {
+
             if (token.IsCancellationRequested) break;
             var currentEvent = _eventQueue.Dequeue();
+            Debug.Log($"イベント処理中: Type={currentEvent.event_type}, Context={currentEvent.context}"); // ★確認用
             switch (currentEvent.event_type)
             {
                 case "text": await ProcessTextEvent(currentEvent, token); break;
                 case "standing_picture": ProcessStandingPictureEvent(currentEvent); break;
+                default: // ★ここを通っているならスペルミス
+                    Debug.LogError($"未知のイベントタイプです: {currentEvent.event_type}");
+                    break;
             }
             if (_fastForwardAction != null && _fastForwardAction.IsPressed())
             {

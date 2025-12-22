@@ -52,7 +52,7 @@ public class UIManager : MonoBehaviour
     public void UpdateActionButtons(bool hasClass, bool isShiftDay)
     {
         // 一旦全部リセット
-        attendButton.gameObject.SetActive(false);
+        attendButton.gameObject.SetActive(true);
         skipButton.gameObject.SetActive(true); // 休むはいつでも選べる
         studyButton.gameObject.SetActive(true);
         playButton.gameObject.SetActive(true);
@@ -61,7 +61,9 @@ public class UIManager : MonoBehaviour
         // 授業がある場合
         if (hasClass)
         {
-            attendButton.gameObject.SetActive(true);
+            // --- 授業がある時間 ---
+            attendButton.interactable = true; // 出席できる
+            skipButton.interactable = true;   // サボって休める
 
             // 授業がある時間は、サボらないと他のことはできない
             // UI設計としては「サボる(Rest)」を押した後に自由行動メニューを出すのが綺麗ですが
@@ -75,8 +77,10 @@ public class UIManager : MonoBehaviour
             // 空きコマ・放課後の場合
             attendButton.gameObject.SetActive(false);
 
+            skipButton.interactable = true;
             studyButton.interactable = true;
             playButton.interactable = true;
+
 
             // シフトが入っている日ならバイトボタン有効、そうでなければ無効（あるいは臨時バイト？）
             // 仕様：シフト設定した日はバイトが推奨される

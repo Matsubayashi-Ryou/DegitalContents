@@ -53,14 +53,14 @@ public class GameManager : MonoBehaviour
         StartNewDay();
     }
 
-    void StartNewDay()
+    async void StartNewDay()
     {
         currentPeriod = 1;
         uiManager.UpdateDate(currentDate);
 
         if (currentDayOfWeek == 0 && currentPeriod == 1)
         {
-            CheckSpecialEvents().Forget(); // 非同期でチェック
+            await CheckSpecialEvents();
         }
 
         // 今日の曜日 (0~4) に基づいて、登録された授業を取得
@@ -82,9 +82,12 @@ public class GameManager : MonoBehaviour
         ProcessCurrentPeriod();
     }
 
-    private async UniTaskVoid CheckSpecialEvents()
+    private async UniTask CheckSpecialEvents()
     {
         {
+            // testScenario が設定されていない場合の安全策を追加
+            if (testScenario == null) return;
+
             Debug.Log($"第{currentWeek}週：テスト期間開始！");
 
             // UI操作を一時無効化
@@ -93,12 +96,6 @@ public class GameManager : MonoBehaviour
 
             // テストシナリオを再生（会話が終わるまで待機）
             await conversationManager.StartConversation(testScenario, this.GetCancellationTokenOnDestroy());
-
-            // テスト結果に応じたステータス変化などが必要ならここに記述
-            // player.UpdateStatus(0, -20, -10); 
-
-            // UIを元に戻す
-            ProcessCurrentPeriod();
         }
     }
 
@@ -109,7 +106,7 @@ public class GameManager : MonoBehaviour
         uiManager.UpdateStatusDisplay(player);
         // 配列は0始まり、currentPeriodは1始まりなので -1 する
         LessonData currentLesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
-    string displayTitle;
+        string displayTitle;
         bool canAttend;
         bool isShift = shiftDays[currentDayOfWeek];
         bool hasClass = (currentLesson != null);
@@ -135,7 +132,7 @@ public class GameManager : MonoBehaviour
             canAttend = false; // 授業がないので出席ボタンは押せない
         }
         else
-{
+        {
             // 授業情報の詳細を表示
             displayTitle = $"{currentLesson.lessonName}\n" +
                            $"担当：{currentLesson.teacherName}\n" +
@@ -149,39 +146,52 @@ public class GameManager : MonoBehaviour
 
     // --- 時限を進める処理 ---
     async UniTask AdvancePeriod()
-{
-    currentPeriod++;
+    {
+        currentPeriod++;
 
-    // 5限終了後（放課後）
-    if (currentPeriod > 5)
+        // 5限終了後（放課後）
+        if (currentPeriod > 5)
+        {
+            await EndDayProcess(); // 一日の終わりの処理
+
+        }
+        else
+        {
+            ProcessCurrentPeriod();
+        }
+    }
+    // 一日の終わりの処理（睡眠など）
+    async Task EndDayProcess()
     {
         Debug.Log("放課後になりました。");
 
-            // トリガー：放課後のランダムイベント (30%)
-            await CheckAndTriggerRandomEvent("AfterSchool");
+        // トリガー：放課後のランダムイベント (30%)
+        await CheckAndTriggerRandomEvent("AfterSchool");
 
-            // 日付更新
-            currentDate = currentDate.AddDays(1);
-            currentDayOfWeek++;
+        // 日付更新
+        currentDate = currentDate.AddDays(1);
+        currentDayOfWeek++;
 
-        if (currentDayOfWeek > 4) // 金曜終了
+        if (currentDayOfWeek > 5)
         {
-                currentDate = currentDate.AddDays(2); // 土日飛ばし
-                currentDayOfWeek = 0;
-                currentWeek++;
-                Debug.Log($"=== 第{currentWeek}週目開始 ===");
-            }
+            currentDate = currentDate.AddDays(1); // 日飛ばし
+            currentDayOfWeek = 0;
+            currentWeek++;
+            Debug.Log($"=== 第{currentWeek}週目開始 ===");
+        }
+        Debug.Log("=== 一日の終了 ===");
+
+        // ★睡眠処理：体力+50
+        player.UpdateAllStats(0, 50, 0, 0, 0);
+        Debug.Log("睡眠をとりました (体力+50)");
         StartNewDay();
     }
-    else
-    {
-        ProcessCurrentPeriod();
-    }
-}
 
     // 「出席」ボタン
     public async void OnClickAttend()
     {
+        Debug.Log("【確認】ボタンが押されました！");
+
         uiManager.attendButton.interactable = false;
         uiManager.skipButton.interactable = false;
         LessonData lesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
@@ -216,11 +226,7 @@ public class GameManager : MonoBehaviour
         int staminaCost = lesson.staminaCost;
 
         // ★名前付き引数で指定（順番を気にしなくて済む）
-        player.UpdateStatus(
-        academicChg: finalAcademicGain,
-        staminaChg: -staminaCost,
-        motivationChg: -5 // 授業で少し疲れてやる気ダウン
-    );
+        player.UpdateAllStats(gain, -cost, 0, 0, -5);
 
         Debug.Log($"「{lesson.lessonName}」に出席。学力+{finalAcademicGain}, 体力-{cost}");
 
@@ -229,45 +235,47 @@ public class GameManager : MonoBehaviour
         // ボタン復帰などは AdvancePeriod 内の UI更新処理で行われるはず
     }
 
-    // 2. 課題・自習 (学力UP大, 体力DOWN)
-    public async Task OnClickSelfStudy()
+    // 2. 課題・自習 (学力+10, 体力-10)
+    public async void OnClickStudy()
     {
-        player.UpdateStatus(15, -15, -10); // 学力+15
-        Debug.Log("課題を進めた");
+        uiManager.studyButton.interactable = false; // 連打防止
+
+        // 学力+10, 体力-10
+        player.UpdateAllStats(10, -10, 0, 0, 0);
+
+        Debug.Log("課題・自習: 学力+10, 体力-10");
         await AdvancePeriod();
     }
 
-    // 3. 遊ぶ (人間性UP, 財力DOWN, 体力DOWN, やる気UP)
-    public async Task OnClickPlay()
+    // 3. 遊ぶ (財力-3000, 人間性+30)
+    public async void OnClickPlay()
     {
-        if (player.money < 2000)
-        {
-            Debug.Log("金欠で遊べない！");
-            return;
-        }
-        player.UpdateStatus(0, -20, 10); // 学力変動なし
-        player.money -= 2000;
-        player.humanity += 10;
+        if (player.money < 3000) return; // お金不足チェック
 
-        Debug.Log("友達と遊んだ");
+        uiManager.playButton.interactable = false;
+
+        // 財力-3000, 人間性+30
+        player.UpdateAllStats(0, 0, -3000, 30, 0);
+
+        Debug.Log("遊ぶ: 財力-3000, 人間性+30");
         await AdvancePeriod();
     }
 
-    // 4. バイト (財力UP, 体力DOWN大)
-    public async Task OnClickWork()
+    // 4. バイト (財力+3000, 体力-40)
+    public async void OnClickWork()
     {
-        int wage = 4000; // 時給換算
-        player.money += wage;
-        player.UpdateStatus(0, -25, -5);
+        uiManager.workButton.interactable = false;
 
-        Debug.Log($"バイトをして {wage}円 稼いだ");
+        // 体力-40, 財力+3000
+        player.UpdateAllStats(0, -40, 3000, 0, 0);
+
+        Debug.Log("バイト: 財力+3000, 体力-40");
         await AdvancePeriod();
     }
-
     // 5. 休む (体力回復)
     public async Task OnClickRest()
     {
-        player.UpdateStatus(0, 30, 10);
+        player.UpdateAllStats(0, 30, 0, 0, 10);
         Debug.Log("休憩した");
         await AdvancePeriod();
     }
@@ -311,13 +319,13 @@ public class GameManager : MonoBehaviour
     await AdvancePeriod();
 }
 
-// --- ランダムイベント判定 ---
-private async UniTask CheckAndTriggerRandomEvent(string triggerType)
-{
-    // 確率判定 (30%)
-    if (UnityEngine.Random.Range(1, 101) > 30) return;
+    // --- ランダムイベント判定 ---
+    private async UniTask CheckAndTriggerRandomEvent(string triggerType)
+    {
+        // 確率判定 (30%)
+        if (UnityEngine.Random.Range(1, 101) > 30) return;
 
-    Debug.Log($"ランダムイベント発生！ ({triggerType})");
+        Debug.Log($"ランダムイベント発生！ ({triggerType})");
 
         //if (randomEventScenarios.Count == 0) return;
 
@@ -334,37 +342,35 @@ private async UniTask CheckAndTriggerRandomEvent(string triggerType)
     // イベント効果（仮）
     private void ApplyRandomEventEffect(int eventIndex)
     {
-    switch (eventIndex)
-    {
-        case 0: // 友達と遊んだ
+        switch (eventIndex)
+        {
+            case 0: // 友達と遊んだ
                 // 財力-3000, 人間性+5, やる気+10 (リフレッシュ)
-            player.UpdateStatus(
+                player.UpdateStatus(
                 moneyChg: -3000,
                 humanityChg: 5,
                 motivationChg: 10,
                 staminaChg: -10
             );
             Debug.Log("イベント: 友達と遊んでリフレッシュ！");
-            break;
-
-        case 1: // バイトヘルプ
+                break;
+            case 1: // バイトヘルプ
                 // 財力+5000, 体力-30, やる気-10 (疲れ)
-            player.UpdateStatus(
+                player.UpdateStatus(
                 moneyChg: 5000,
                 staminaChg: -30,
                 motivationChg: -10
             );
             Debug.Log("イベント: バイトで稼いだが疲れた...");
-            break;
-
-        case 2: // 自習
+                break;
+            case 2: // 自習
                 // 学力+10, 体力-10
-            player.UpdateStatus(
+                player.UpdateStatus(
                 academicChg: 10,
                 staminaChg: -10
             );
             Debug.Log("イベント: 自習した。");
             break;
+        }
     }
-}
 }
