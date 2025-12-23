@@ -1,0 +1,37 @@
+{
+    "data": [
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "あー、なんだか今日はやる気が出ない……。このまま帰っちゃおうかな。",
+            "position": 0
+        },
+        {
+            "event_type": "standing_picture",
+            "name": "friend_a",
+            "expression": "smile",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "友人A",
+            "context": "おっ、その顔はサボりか？ 奇遇だな、俺もだ。",
+            "bgm": "",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "友人A",
+            "context": "難しい講義なんてパスして、学食でスマホゲームでもしようぜ！",
+            "bgm": "",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "地の文",
+            "context": "悪魔の囁きに乗り、講義には出ずに友人とダラダラ過ごしてしまった……。",
+            "bgm": "",
+            "position": 0
+        }
+    ]
+}
