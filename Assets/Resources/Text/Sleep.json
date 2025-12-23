@@ -1,0 +1,28 @@
+{
+    "data": [
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "ふあ……。今日はもう疲れたな。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "地の文",
+            "context": "布団に入ると、すぐに意識が遠のいていった……。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "システム",
+            "context": "（睡眠により体力が50回復しました）",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "システム",
+            "context": "翌朝――",
+            "position": 0
+        }
+    ]
+}

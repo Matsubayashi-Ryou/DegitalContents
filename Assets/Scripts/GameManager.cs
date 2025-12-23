@@ -35,6 +35,8 @@ public class GameManager : MonoBehaviour
     public TextAsset goodEndingScenario;   // 単位OK + 人間性高 (80以上)
     public TextAsset bitterEndingScenario; // 単位OK + 人間性低 (79以下)
     public TextAsset badEndingScenario;    // 単位NG (16以下)
+    [Header("システムシナリオ")]
+    public TextAsset sleepScenario; // ★追加: 睡眠時のシナリオ
 
     // ★追加: 履修中の授業の進捗管理リスト
     // 週ごとのマス目(weeklySchedule)とは別に、授業ごとのデータをここで持つ
@@ -330,6 +332,11 @@ public class GameManager : MonoBehaviour
             await RunFinalTest();
         }
 
+        if (sleepScenario != null)
+        {
+            // 会話が終わるまで待機
+            await conversationManager.StartConversation(sleepScenario, this.GetCancellationTokenOnDestroy());
+        }
 
         // 日付更新
         currentDate = currentDate.AddDays(1);
