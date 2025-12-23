@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "event_type": "text",
+      "name": "主人公",
+      "context": "ついに大学生活が始まる……！",
+      "position": 0
+    },
+    {
+      "event_type": "text",
+      "name": "ガイダンス",
+      "context": "新入生の皆さんは、速やかに履修登録を行ってください。",
+      "position": 0
+    },
+    {
+      "event_type": "text",
+      "name": "主人公",
+      "context": "よし、まずは大事な時間割決めだ！",
+      "position": 0
+    }
+  ]
+}

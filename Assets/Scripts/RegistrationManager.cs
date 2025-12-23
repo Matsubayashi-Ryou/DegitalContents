@@ -30,16 +30,37 @@ public class RegistrationManager : MonoBehaviour
     // 内部データ: 現在作成中の時間割
     private LessonData[,] tempSchedule = new LessonData[6, 5];
 
-    void Start()
+    /*
+     void Start()
+     {
+         registrationCanvas.SetActive(true);
+         mainGameCanvas.SetActive(false);
+
+         // 抽選結果パネルは隠しておく
+         if (lotteryResultPanel != null) lotteryResultPanel.SetActive(false);
+         // 結果確認ボタンにイベント登録
+         if (lotteryConfirmButton != null)
+             lotteryConfirmButton.onClick.AddListener(StartMainGame);
+
+         InitializeTimeTableButtons(); // グリッドの初期化
+         InitializePalette();          // 右側リストの初期化
+         RefreshTimeTableView();       // 画面描画
+     }
+     */
+
+    public void BeginRegistration()
     {
         registrationCanvas.SetActive(true);
         mainGameCanvas.SetActive(false);
 
         // 抽選結果パネルは隠しておく
         if (lotteryResultPanel != null) lotteryResultPanel.SetActive(false);
-        // 結果確認ボタンにイベント登録
+        // 結果確認ボタンにイベント登録（重複登録防止のためRemoveAllListeners推奨）
         if (lotteryConfirmButton != null)
+        {
+            lotteryConfirmButton.onClick.RemoveAllListeners();
             lotteryConfirmButton.onClick.AddListener(StartMainGame);
+        }
 
         InitializeTimeTableButtons(); // グリッドの初期化
         InitializePalette();          // 右側リストの初期化
