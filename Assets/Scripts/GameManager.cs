@@ -417,7 +417,7 @@ public class GameManager : MonoBehaviour
         else // サボり（自分の意志で）
         {
             await conversationManager.StartConversation(skipClassScenario, this.GetCancellationTokenOnDestroy());
-            player.UpdateStatus(staminaChg: 20, motivationChg: -5);
+            player.UpdateStatus(staminaChg: 20, motivationChg: -5, academicChg: -5);
         }
 
         // 2. ★ランダムイベント判定 (昼休み以外)
