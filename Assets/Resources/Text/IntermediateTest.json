@@ -1,0 +1,58 @@
+{
+    "data": [
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "今日はいよいよ中間テストの日だ……。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "地の文",
+            "context": "教室には独特の緊張感が漂っている。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "（高校までとは違う、大学のテスト……。これまでの学習成果が試される時だ）",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "教員",
+            "context": "はい、それでは机の上を片付けてください。試験を開始します！",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "地の文",
+            "context": "…………",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "地の文",
+            "context": "……………………",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "教員",
+            "context": "そこまで！ 筆記用具を置いてください。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "ふぅ……。なんとか埋めることはできたかな。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "今の時点での実力は出し切ったはずだ。結果を待とう。",
+            "position": 0
+        }
+    ]
+}

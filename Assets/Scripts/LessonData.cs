@@ -56,6 +56,7 @@ public class LessonData : ScriptableObject
             GameDayOfWeek.Wednesday => "水",
             GameDayOfWeek.Thursday => "木",
             GameDayOfWeek.Friday => "金",
+            GameDayOfWeek.Saturday => "土",
             _ => "？"
         };
         return $"{dayStr}{period}";
