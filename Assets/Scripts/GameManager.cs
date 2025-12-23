@@ -31,6 +31,11 @@ public class GameManager : MonoBehaviour
     public TextAsset finalTestScenario;        // 期末テスト会話
     public TextAsset gradeAnnouncementScenario; // 成績発表会話
 
+    [Header("エンディングシナリオ")]
+    public TextAsset goodEndingScenario;   // 単位OK + 人間性高 (80以上)
+    public TextAsset bitterEndingScenario; // 単位OK + 人間性低 (79以下)
+    public TextAsset badEndingScenario;    // 単位NG (16以下)
+
     // ★追加: 履修中の授業の進捗管理リスト
     // 週ごとのマス目(weeklySchedule)とは別に、授業ごとのデータをここで持つ
     private List<LessonProgress> currentCourses = new List<LessonProgress>();
@@ -409,9 +414,52 @@ public class GameManager : MonoBehaviour
         }
 
         Debug.Log($"今回の取得単位数: {earnedCredits}");
+        Debug.Log($"現在の人間性: {player.humanity}");
         Debug.Log("======================================");
 
         // ゲームクリア演出などをここに呼ぶ
+        // ★エンディング分岐ロジック
+        TextAsset endingToPlay = null;
+
+        if (earnedCredits <= 4)
+        {
+            // 単位不足：バッドエンド
+            Debug.Log("判定: バッドエンド (単位不足)");
+            endingToPlay = badEndingScenario;
+        }
+        else
+        {
+            // 単位取得OK
+            if (player.humanity >= 80)
+            {
+                // 人間性80以上：グッドエンド
+                Debug.Log("判定: グッドエンド (充実した学生生活)");
+                endingToPlay = goodEndingScenario;
+            }
+            else
+            {
+                // 人間性79以下：ビターエンド
+                Debug.Log("判定: ビターエンド (ぼっちだが単位は取れた)");
+                endingToPlay = bitterEndingScenario;
+            }
+        }
+
+        // エンディング再生
+        if (endingToPlay != null)
+        {
+            await conversationManager.StartConversation(endingToPlay, this.GetCancellationTokenOnDestroy());
+        }
+        else
+        {
+            Debug.LogWarning("エンディングシナリオが設定されていません！");
+        }
+
+        // ゲーム終了処理 (タイトルへ戻る、または終了画面を出すなど)
+        Debug.Log("=== GAME CLEAR ===");
+        isGameRunning = false;
+        // ここでタイトルに戻る処理などを呼ぶ
+        // SceneManager.LoadScene("TitleScene");
+
     }
 
     // 「出席」ボタン

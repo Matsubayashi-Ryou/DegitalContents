@@ -1,0 +1,22 @@
+{
+    "data": [
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "嘘だろ……単位が、全然足りない……。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "親になんて言えばいいんだ。俺の大学生活はここで終わってしまうのか？",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "システム",
+            "context": "―― BAD END ――",
+            "position": 0
+        }
+    ]
+}

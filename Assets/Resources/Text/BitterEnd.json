@@ -1,0 +1,28 @@
+{
+    "data": [
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "ふう、なんとかフル単（全単位取得）は達成できたな。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "……でも、スマホを見ても誰からも連絡が来ていない。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "勉強だけの半年間だったな。夏休みは一人で過ごすか……。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "システム",
+            "context": "―― BITTER END ――",
+            "position": 0
+        }
+    ]
+}

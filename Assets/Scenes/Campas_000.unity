@@ -293,6 +293,9 @@ MonoBehaviour:
   intermediateTestScenario: {fileID: 4900000, guid: d4dde8913754145138b6333d1845cb5e, type: 3}
   finalTestScenario: {fileID: 4900000, guid: 20ccc665e43d34983bce23be5e9e323f, type: 3}
   gradeAnnouncementScenario: {fileID: 4900000, guid: fc3c89df1e2a84b729981ef04e639cc0, type: 3}
+  goodEndingScenario: {fileID: 4900000, guid: fe8760a0fd2df4463871b2151690e22a, type: 3}
+  bitterEndingScenario: {fileID: 4900000, guid: edcd138bd2876472bb0510c376b49a26, type: 3}
+  badEndingScenario: {fileID: 4900000, guid: af668dd6b620c48858308e629af31441, type: 3}
 --- !u!4 &165263791
 Transform:
   m_ObjectHideFlags: 0
