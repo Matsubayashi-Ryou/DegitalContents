@@ -244,6 +244,7 @@ public class GameManager : MonoBehaviour
 
         foreach (var evt in randomEvents)
         {
+            if (evt == null) continue;
             // 条件チェック
             if (evt.timing != currentTiming) continue;
             if (evt.requiresNextClassExists && !hasClassNext) continue;
