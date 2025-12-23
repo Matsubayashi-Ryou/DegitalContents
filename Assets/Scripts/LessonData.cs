@@ -28,10 +28,6 @@ public class LessonData : ScriptableObject
     [Range(0, 100)] public int testWeight;         // テスト
     [Range(0, 100)] public int participationWeight; // 授業参画度（出席点）
 
-    // --- ★追加: テストがあるかどうかの判定プロパティ ---
-    // testWeightが 0 より大きければ true (テストあり) を返す
-    public bool HasExam => testWeight > 0;
-
     // エディタ上で値が変更されたときに呼ばれる検証用関数
     private void OnValidate()
     {
