@@ -219,7 +219,7 @@ MonoBehaviour:
   uiManager: {fileID: 1658674477}
   conversationManager: {fileID: 1791339294}
   attendClassScenario: {fileID: 4900000, guid: afa605f0888263a4489a2d03efcf326f, type: 3}
-  skipClassScenario: {fileID: 4900000, guid: afa605f0888263a4489a2d03efcf326f, type: 3}
+  skipClassScenario: {fileID: 4900000, guid: efdf2d3a3a0de8a4b8d7dcef0ae56b1e, type: 3}
   LunchScenario: {fileID: 4900000, guid: b7f78c8d70376ee499dccfbb86982439, type: 3}
   testScenario: {fileID: 0}
   allLessons:
