@@ -26,6 +26,19 @@ public class GameManager : MonoBehaviour
     [Header("ランダムイベント設定")]
     public List<RandomEventData> randomEvents;
 
+    [Header("テスト・成績イベント")]
+    public TextAsset intermediateTestScenario; // 中間テスト会話
+    public TextAsset finalTestScenario;        // 期末テスト会話
+    public TextAsset gradeAnnouncementScenario; // 成績発表会話
+
+    // ★追加: 履修中の授業の進捗管理リスト
+    // 週ごとのマス目(weeklySchedule)とは別に、授業ごとのデータをここで持つ
+    private List<LessonProgress> currentCourses = new List<LessonProgress>();
+
+    // 成績評価用に保存しておく学力
+    private int academicScoreAtIntermediate = 0; // 中間時点
+    private int academicScoreAtFinal = 0;        // 期末時点
+
     // 内部データ
     private DateTime currentDate = new DateTime(2025, 4, 7);
     private int currentDayOfWeek = 0; // 0=月...
@@ -41,6 +54,21 @@ public class GameManager : MonoBehaviour
     {
         this.weeklySchedule = schedule;
         this.shiftDays = shifts;
+        // ★履修登録された授業を抽出し、Progressリストを作成
+        currentCourses.Clear();
+        foreach (var lesson in schedule)
+        {
+            if (lesson != null)
+            {
+                // 重複登録を防ぐ (週2回の授業がある場合などの対応)
+                if (!currentCourses.Exists(c => c.lessonData == lesson))
+                {
+                    currentCourses.Add(new LessonProgress(lesson));
+                }
+            }
+        }
+
+        Debug.Log($"履修科目数: {currentCourses.Count}");
         StartGame();
     }
 
@@ -286,6 +314,18 @@ public class GameManager : MonoBehaviour
             Debug.Log($"放課後イベント発生: {triggeredEvent.eventName}");
         }
 
+        // 6月4日：中間テスト
+        if (currentDate.Month == 6 && currentDate.Day == 4)
+        {
+            await RunIntermediateTest();
+        }
+        // 7月23日：期末テスト
+        else if (currentDate.Month == 7 && currentDate.Day == 23)
+        {
+            await RunFinalTest();
+        }
+
+
         // 日付更新
         currentDate = currentDate.AddDays(1);
         currentDayOfWeek++;
@@ -303,7 +343,75 @@ public class GameManager : MonoBehaviour
         player.UpdateAllStats(0, 50, 0, 0, 0);
         Debug.Log("睡眠をとりました (体力+50)");
         StartNewDay();
-        Debug.Log("放課後になりました。");
+    }
+
+    // --- テストイベント処理 ---
+
+    async UniTask RunIntermediateTest()
+    {
+        Debug.Log("=== 中間テスト期間 ===");
+
+        // その時点の学力を保存
+        academicScoreAtIntermediate = player.academic;
+
+        // シナリオ再生
+        if (intermediateTestScenario != null)
+        {
+            await conversationManager.StartConversation(intermediateTestScenario, this.GetCancellationTokenOnDestroy());
+        }
+
+        // ここで中間成績のログを出すなどしても良い
+        Debug.Log($"中間テスト終了。現在の学力評価点: {academicScoreAtIntermediate}");
+    }
+
+    async UniTask RunFinalTest()
+    {
+        Debug.Log("=== 期末テスト期間 ===");
+
+        // 期末時点の学力を保存
+        academicScoreAtFinal = player.academic;
+
+        // シナリオ再生
+        if (finalTestScenario != null)
+        {
+            await conversationManager.StartConversation(finalTestScenario, this.GetCancellationTokenOnDestroy());
+        }
+
+        // ★成績発表へ
+        await AnnounceGrades();
+    }
+
+    // 成績発表と単位認定
+    async UniTask AnnounceGrades()
+    {
+        if (gradeAnnouncementScenario != null)
+        {
+            await conversationManager.StartConversation(gradeAnnouncementScenario, this.GetCancellationTokenOnDestroy());
+        }
+
+        Debug.Log("============== 成績発表 ==============");
+        int earnedCredits = 0;
+
+        foreach (var course in currentCourses)
+        {
+            // 評価には「期末時点の学力」を使う（あるいは中間と期末の平均でも良い）
+            float score = course.CalculateFinalScore(academicScoreAtFinal);
+            bool isPassed = score >= 60f;
+
+            string resultStr = isPassed ? "【合格】" : "【不合格】";
+            Debug.Log($"{course.lessonData.lessonName}: {score:F1}点 {resultStr} " +
+                      $"(出席率: {course.GetAttendanceScore():F0}%)");
+
+            if (isPassed)
+            {
+                earnedCredits += course.lessonData.credits;
+            }
+        }
+
+        Debug.Log($"今回の取得単位数: {earnedCredits}");
+        Debug.Log("======================================");
+
+        // ゲームクリア演出などをここに呼ぶ
     }
 
     // 「出席」ボタン
@@ -314,10 +422,17 @@ public class GameManager : MonoBehaviour
         uiManager.skipButton.interactable = false;
         LessonData lesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
 
-        // 1. 授業会話
+        // 授業会話
         await conversationManager.StartConversation(attendClassScenario, this.GetCancellationTokenOnDestroy());
+        LessonProgress progress = currentCourses.Find(c => c.lessonData == lesson);
+        if (progress != null)
+        {
+            progress.attendedCount++;
+            progress.totalClassCount++; // 授業があった回数も増やす
+            Debug.Log($"[{lesson.lessonName}] 出席回数: {progress.attendedCount}/{progress.totalClassCount}");
+        }
 
-        // 2. パラメータ計算
+        // パラメータ計算
         int cost = lesson.staminaCost;
         int gain = lesson.academicGain;
         float efficiency = 1.0f;
@@ -340,12 +455,7 @@ public class GameManager : MonoBehaviour
         int finalAcademicGain = Mathf.FloorToInt(lesson.academicGain * efficiency);
         int staminaCost = lesson.staminaCost;
 
-        player.UpdateStatus(
-            academicChg: finalAcademicGain,
-            staminaChg: -staminaCost,
-            motivationChg: -5
-        );
-
+        player.UpdateAllStats(lesson.academicGain, -cost, 0, 0, -5);
         Debug.Log($"「{lesson.lessonName}」に出席。");
         await AdvancePeriod();
     }
@@ -403,6 +513,14 @@ public class GameManager : MonoBehaviour
         LessonData currentLesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
         bool isEmptySlot = (currentLesson == null);
 
+        // ★欠席カウント処理
+        LessonProgress progress = currentCourses.Find(c => c.lessonData == currentLesson);
+        if (progress != null)
+        {
+            // 出席数は増やさず、授業回数だけ増やす（＝欠席扱い）
+            progress.totalClassCount++;
+            Debug.Log($"[{currentLesson?.lessonName}] 欠席... ({progress.attendedCount}/{progress.totalClassCount})");
+        }
         // 基本行動
         if (currentPeriod == 3) // 昼休み
         {
@@ -417,7 +535,7 @@ public class GameManager : MonoBehaviour
         else // サボり（自分の意志で）
         {
             await conversationManager.StartConversation(skipClassScenario, this.GetCancellationTokenOnDestroy());
-            player.UpdateStatus(staminaChg: 20, motivationChg: -5);
+            player.UpdateStatus(staminaChg: 20, motivationChg: -5, academicChg: -5);
         }
 
         // 2. ★ランダムイベント判定 (昼休み以外)

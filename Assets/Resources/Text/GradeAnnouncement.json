@@ -1,0 +1,40 @@
+{
+    "data": [
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "ついに、成績発表の日がやってきた。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "地の文",
+            "context": "大学のポータルサイトにアクセスする手が、少し震えている。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "レポートも出したし、テストも受けた。出席だって……それなりにしたはず。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "よし、覚悟を決めて……ログイン！",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "地の文",
+            "context": "画面に今期の成績一覧が表示される。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "結果は……どうだ！？",
+            "position": 0
+        }
+    ]
+}

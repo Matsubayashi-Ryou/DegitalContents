@@ -1,0 +1,58 @@
+{
+    "data": [
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "7月23日。前期の期末テスト当日だ。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "（このテストの結果次第で単位が取れるかが決まる……。絶対に落とせない！）",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "地の文",
+            "context": "教室内は、外の暑さに負けないくらいの熱気に包まれている。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "教員",
+            "context": "それでは始めます。不正行為は即退学ですからね。……始め！",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "（よし、この問題はレポートでやったところだ！ いける！）",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "地の文",
+            "context": "カリカリカリカリ……（ペンを走らせる音）",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "教員",
+            "context": "はい、終了です。後ろから答案を回収します。",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "終わったー！！ これでやっと……やっと夏休みだ！",
+            "position": 0
+        },
+        {
+            "event_type": "text",
+            "name": "主人公",
+            "context": "あとは、良い成績がついていることを祈るだけだな。",
+            "position": 0
+        }
+    ]
+}

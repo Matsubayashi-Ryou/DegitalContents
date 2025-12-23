@@ -290,6 +290,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7dda20086f598ee4498452165e862a9a, type: 2}
   - {fileID: 11400000, guid: ac372d4c0ca707a4fb75eec50aa8ce6b, type: 2}
   - {fileID: 11400000, guid: 26870d7575d39fa42bf27f4a66989639, type: 2}
+  intermediateTestScenario: {fileID: 4900000, guid: d4dde8913754145138b6333d1845cb5e, type: 3}
+  finalTestScenario: {fileID: 4900000, guid: 20ccc665e43d34983bce23be5e9e323f, type: 3}
+  gradeAnnouncementScenario: {fileID: 4900000, guid: fc3c89df1e2a84b729981ef04e639cc0, type: 3}
 --- !u!4 &165263791
 Transform:
   m_ObjectHideFlags: 0
