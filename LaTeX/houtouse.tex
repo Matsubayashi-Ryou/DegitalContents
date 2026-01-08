@@ -1,0 +1,106 @@
+\documentclass[a4paper,11pt]{ltjsarticle}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{url}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{booktabs}
+
+% 余白の設定
+\geometry{left=25mm,right=25mm,top=25mm,bottom=25mm}
+
+\title{\textbf{大学生存シミュレーター 操作説明書}}
+\author{開発チーム}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{はじめに}
+本ゲームは、大学1年生の前期（4月～7月）を舞台にしたシミュレーションゲームです。
+プレイヤーは履修登録を行い、授業への出席、アルバイト、友人との交流などのバランスを取りながら、無事に単位を取得し、充実したキャンパスライフを送ることを目指します。
+
+\section{起動方法}
+\begin{enumerate}
+    \item 配布されたZIPファイルを適当なフォルダに解凍してください。
+    \item フォルダ内にある \textbf{\texttt{DegitalContents.exe}}（またはアイコンが表示されているアプリケーションファイル）をダブルクリックして起動します。
+    \item \textbf{※注意}：Windowsのセキュリティ警告（SmartScreen）が表示される場合があります。その際は「詳細情報」をクリックし、「実行」を選択してください。
+\end{enumerate}
+
+\section{基本操作}
+本ゲームは基本的にマウスのみで操作可能です。会話シーンのみキーボード操作に対応しています。
+
+\begin{itemize}
+    \item \textbf{左クリック}：項目の選択、ボタンの決定、テキスト送り
+    \item \textbf{Space / Enterキー}：会話シーンのテキスト送り
+    \item \textbf{Ctrlキー / 右クリック長押し}：会話シーンの早送り
+\end{itemize}
+
+\section{ゲームの流れ}
+
+\subsection{1. 履修登録パート}
+ゲーム開始直後、半年間の時間割を作成します。
+
+\begin{enumerate}
+    \item \textbf{授業の選択}：画面右側の授業リストから受講したい授業をクリックします。
+    \item \textbf{登録}：自動的に指定された曜日・時限に授業がセットされます。
+    \item \textbf{登録解除}：時間割上の授業をクリックすると、登録を解除できます。
+    \item \textbf{バイトシフトの設定}：画面上の「月」～「土」のチェックボックスをオンにすると、その日はアルバイトのシフトが入ります（バイトが可能になります）。
+    \item \textbf{完了}：「登録完了」ボタンを押すと、抽選が行われ、本編が開始します。
+    \item \textbf{抽選結果}：人気講義（抽選科目）の場合、10\%の確率で落選し、空きコマになることがあります。
+\end{enumerate}
+
+\subsection{2. シミュレーションパート（日常）}
+4月から7月まで、1日ずつ進行します。1日は1限～5限と放課後で構成されます。
+
+\subsubsection*{画面の見方}
+\begin{itemize}
+    \item \textbf{画面左側}：現在のパラメータ（体力、学力、財力、人間性）
+    \item \textbf{画面中央}：現在の時限と授業内容
+    \item \textbf{画面右側}：行動選択ボタン
+\end{itemize}
+
+\subsubsection*{行動コマンド}
+現在の状況（授業の有無、シフトの有無）によって選択できる行動が変化します。
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{llp{8cm}}
+        \toprule
+        \textbf{コマンド}  & \textbf{条件} & \textbf{効果・備考}                     \\
+        \midrule
+        \textbf{授業に出る} & 授業あり        & 学力上昇、体力消費。                         \\
+                       &             & ※体力30未満ややる気20未満の場合、学習効率が大幅に低下します。  \\
+        \textbf{休む}    & 常時          & 体力が30回復します。授業がある時に選ぶと「サボり」扱いになります。 \\
+        \textbf{課題・自習} & 空き時間        & 学力が10上昇、体力が10減少します。                \\
+        \textbf{遊ぶ}    & 空き時間        & 人間性が30上昇、財力が3000減少、体力が10減少します。     \\
+        \textbf{バイト}   & 空き時間        & 財力が3000上昇、体力が40減少します。              \\
+                       & (シフト日のみ)    & ※履修登録時にチェックを入れた曜日のみ実行可能です。         \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{3. 一日の終了と睡眠}
+5限目の行動が終了すると、一日が終了します。睡眠を取ることで体力が自動的に50回復し、翌日へ移行します。
+
+\section{イベントとエンディング}
+
+\subsection{定期試験}
+以下の日程で定期試験イベントが発生します。
+\begin{itemize}
+    \item \textbf{6月4日}：中間テスト
+    \item \textbf{7月23日}：期末テスト
+\end{itemize}
+テストの結果は、その時点での「学力」パラメータに大きく依存します。
+
+\subsection{エンディング分岐}
+期末テスト終了後、取得単位数とパラメータに応じてエンディングが分岐します。
+
+\begin{enumerate}
+    \item \textbf{GOOD END}：取得単位数が17以上、かつ「人間性」が80以上。
+    \item \textbf{BITTER END}：取得単位数が17以上だが、「人間性」が79以下。
+    \item \textbf{BAD END}：取得単位数が4以下（留年・退学危機）。
+\end{enumerate}
+
+
+\end{document}

@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour
     public TextAsset skipClassScenario;   // サボり
     public TextAsset LunchScenario;       // 昼休み
     public TextAsset testScenario;        // テスト用
+    public TextAsset sleepyClassScenario; // 眠い授業
 
     [Header("データプール")]
     public List<LessonData> allLessons;
@@ -477,6 +478,8 @@ public class GameManager : MonoBehaviour
         uiManager.skipButton.interactable = false;
         LessonData lesson = weeklySchedule[currentDayOfWeek, currentPeriod - 1];
 
+        bool isSleepy = player.stamina < 30;
+
         // 授業会話
         await conversationManager.StartConversation(attendClassScenario, this.GetCancellationTokenOnDestroy());
         LessonProgress progress = currentCourses.Find(c => c.lessonData == lesson);
@@ -487,30 +490,45 @@ public class GameManager : MonoBehaviour
             Debug.Log($"[{lesson.lessonName}] 出席回数: {progress.attendedCount}/{progress.totalClassCount}");
         }
 
+        if (isSleepy && sleepyClassScenario != null)
+        {
+            await conversationManager.StartConversation(sleepyClassScenario, this.GetCancellationTokenOnDestroy());
+        }
+
         // パラメータ計算
         int cost = lesson.staminaCost;
         int gain = lesson.academicGain;
         float efficiency = 1.0f;
 
-        if (player.motivation < 20)
+        if (isSleepy)
+        {
+            // ★体力がない時は効率0 (学力上がらない)
+            efficiency = 0.0f;
+            Debug.Log("体力不足で居眠りしてしまった (学力上昇なし)");
+        }
+        else if (player.motivation < 20)
         {
             efficiency = 0.2f;
-            Debug.Log("やる気不足...");
-        }
-        else if (player.stamina < 30)
-        {
-            efficiency = 0.5f;
-            Debug.Log("疲労...");
-        }
-        if (lesson.format == LessonFormat.Online)
-        {
-            efficiency = 0.1f; // オンライン授業の効率（仮）
+            Debug.Log("やる気不足で身に入らなかった...");
         }
 
-        int finalAcademicGain = Mathf.FloorToInt(lesson.academicGain * efficiency);
+        // オンライン授業の補正（居眠りしてない場合のみ適用など調整はお好みで）
+        if (!isSleepy && lesson.format == LessonFormat.Online)
+        {
+            // オンラインは体力消費が少ない代わりに効率が少し落ちる等の仕様なら
+            // efficiency *= 0.8f; 
+            // ※元のコードだと 0.1f になっていましたが、低すぎるなら調整してください
+            efficiency = 0.8f;
+        }
+
         int staminaCost = lesson.staminaCost;
+        // ★計算結果を整数にする
+        int finalAcademicGain = Mathf.FloorToInt(gain * efficiency);
 
-        player.UpdateAllStats(lesson.academicGain, -cost, 0, 0, -5);
+        // --- 4. ステータス反映 (修正版) ---
+        // ★修正点: lesson.academicGain ではなく finalAcademicGain を渡す！
+        player.UpdateAllStats(finalAcademicGain, -cost, 0, 0, -5);
+        Debug.Log($"「{lesson.lessonName}」終了。学力+{finalAcademicGain}, 体力-{cost}");
         Debug.Log($"「{lesson.lessonName}」に出席。");
         await AdvancePeriod();
     }

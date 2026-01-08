@@ -222,6 +222,7 @@ MonoBehaviour:
   skipClassScenario: {fileID: 4900000, guid: efdf2d3a3a0de8a4b8d7dcef0ae56b1e, type: 3}
   LunchScenario: {fileID: 4900000, guid: b7f78c8d70376ee499dccfbb86982439, type: 3}
   testScenario: {fileID: 0}
+  sleepyClassScenario: {fileID: 4900000, guid: 299891cd8840bc543a9a749aaec18edf, type: 3}
   allLessons:
   - {fileID: 11400000, guid: 14b368a8d15befd4291b6a868f358de1, type: 2}
   - {fileID: 11400000, guid: 749897e364c024e4abeaed75ac70f5b4, type: 2}
@@ -296,6 +297,7 @@ MonoBehaviour:
   goodEndingScenario: {fileID: 4900000, guid: fe8760a0fd2df4463871b2151690e22a, type: 3}
   bitterEndingScenario: {fileID: 4900000, guid: edcd138bd2876472bb0510c376b49a26, type: 3}
   badEndingScenario: {fileID: 4900000, guid: af668dd6b620c48858308e629af31441, type: 3}
+  sleepScenario: {fileID: 4900000, guid: d18a0d32f678f4448a7a9e3343c5e978, type: 3}
 --- !u!4 &165263791
 Transform:
   m_ObjectHideFlags: 0
